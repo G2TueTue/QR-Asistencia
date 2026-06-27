@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Trabajador - QRAssist</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/lib/html5-qrcode.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Cabecera -->
+        <header class="app-header">
+            <a href="index.html" class="brand">
+                <div class="brand-logo">QR</div>
+                <div class="brand-text">
+                    <h1>Portal Trabajador</h1>
+                    <span>Registro Móvil</span>
+                </div>
+            </a>
+            <div id="logged-user-header" style="display: none;">
+                <button id="btn-logout" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <main style="flex: 1; display: flex; align-items: center; justify-content: center;">
+            <!-- 1. Formulario de Inicio de Sesión -->
+            <section id="login-section" class="card login-card">
+                <h2>Ingreso de Personal</h2>
+                <p>Ingresa tus credenciales corporativas</p>
+                
+                <div id="login-error" style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--color-salida); color: #FCA5A5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center;">
+                    RUT o contraseña incorrectos.
+                </div>
+
+                <form id="login-form" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label for="rut-input">RUT del Trabajador</label>
+                        <input type="text" id="rut-input" placeholder="12.345.678-9" required autocomplete="username">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Prueba: 12.345.678-9 o 18.765.432-1</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password-input">Contraseña</label>
+                        <input type="password" id="password-input" placeholder="••••" required autocomplete="current-password">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Clave prueba: 1234 o 5678</span>
+                    </div>
+
+                    <button type="submit" id="btn-submit-login" class="btn" style="width: 100%; margin-top: 1rem;">Ingresar al Portal</button>
+                </form>
+            </section>
+
+            <!-- 2. Panel Principal del Trabajador (Dashboard) -->
+            <section id="dashboard-section" class="card worker-card" style="display: none;">
+                <div class="worker-profile">
+                    <div class="worker-avatar" id="w-avatar">U</div>
+                    <h3 class="worker-name" id="w-name">Cargando...</h3>
+                    <p class="worker-rut" id="w-rut">RUT: --.---.---</p>
+                    
+                    <!-- Estado actual del trabajador -->
+                    <div class="mt-4">
+                        <span class="status-badge" id="w-status-badge">Cargando Estado...</span>
+                    </div>
+                </div>
+
+                <!-- Escáner QR de Asistencia -->
+                <div id="scanner-container" style="display: none;">
+                    <div class="flex justify-between align-center">
+                        <h4 style="font-size: 0.95rem; font-weight: 700;">Cámara de Escaneo QR</h4>
+                        <button id="btn-close-scanner" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Cancelar</button>
+                    </div>
+                    
+                    <div class="camera-scanner-wrapper">
+                        <div class="camera-scanner-overlay">
+                            <div class="scanner-reticle">
+                                <div class="scanner-laser"></div>
+                            </div>
+                        </div>
+                        <div id="reader"></div>
+                    </div>
+                    
+                    <p class="text-center" style="font-size: 0.8rem; color: var(--text-secondary);">
+                        Apunta tu cámara al código QR de la sucursal.
+                    </p>
+                </div>
+
+                <!-- Botones y Acciones del Panel -->
+                <div id="dashboard-actions">
+                    <button id="btn-open-scanner" class="btn" style="width: 100%; padding: 1.2rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                        <span>📷</span> Escanear Código QR
+                    </button>
+                    
+                    <!-- Herramienta de Simulación (Para demostración o sin cámara) -->
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border-glass); border-radius: 16px; padding: 1rem; margin-bottom: 2rem;">
+                        <h5 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Simulador de Escaneo (Tesis / Desarrollo)</h5>
+                        <div class="flex gap-1">
+                            <select id="simulate-qr-select" class="flex-1" style="padding: 0.5rem; font-size: 0.85rem;">
+                                <option value="qrassist_entrada">🟢 QR Entrada</option>
+                                <option value="qrassist_salida">🔴 QR Salida</option>
+                                <option value="qrassist_extra_inicio">⚡ QR Iniciar Horas Extras</option>
+                                <option value="qrassist_extra_fin">🛑 QR Finalizar Horas Extras</option>
+                            </select>
+                            <button id="btn-simulate-scan" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; box-shadow: none;">Simular</button>
+                        </div>
+                    </div>
+
+                    <!-- Historial de hoy del trabajador -->
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Marcas Registradas Hoy</h4>
+                        <div class="table-wrapper" style="margin-top: 0;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Hora</th>
+                                        <th>Tipo de Marca</th>
+                                        <th>Origen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="today-records-table">
+                                    <tr>
+                                        <td colspan="3" class="text-center" style="color: var(--text-muted); font-style: italic; padding: 1.5rem;">Cargando historial...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- BACKDROP Y ACTION SHEET PARA EL QR GENERAL (Entrada, Colación, Salida) -->
+        <div class="backdrop" id="general-backdrop"></div>
+        <div class="action-sheet" id="general-action-sheet">
+            <div class="action-sheet-header">
+                <h3>Código QR Detectado</h3>
+                <p>Selecciona la acción de asistencia correspondiente:</p>
+            </div>
+            <div class="action-sheet-grid">
+                <button class="action-btn entrada" data-type="entrada">
+                    <span class="icon">🟢</span>
+                    <span>Entrada</span>
+                </button>
+                <button class="action-btn colacion-in" data-type="colacion_inicio">
+                    <span class="icon">🥖</span>
+                    <span>Inicio Colación</span>
+                </button>
+                <button class="action-btn colacion-out" data-type="colacion_fin">
+                    <span class="icon">🔄</span>
+                    <span>Fin Colación</span>
+                </button>
+                <button class="action-btn salida" data-type="salida">
+                    <span class="icon">🔴</span>
+                    <span>Salida</span>
+                </button>
+            </div>
+            <button class="btn btn-secondary" id="btn-cancel-general" style="width: 100%;">Cancelar</button>
+        </div>
+
+        <!-- BACKDROP Y ACTION SHEET PARA EL QR DE HORAS EXTRAS -->
+        <div class="backdrop" id="overtime-backdrop"></div>
+        <div class="action-sheet" id="overtime-action-sheet">
+            <div class="action-sheet-header">
+                <h3>Código QR de Turno Especial</h3>
+                <p>Selecciona tu registro de horas extras:</p>
+            </div>
+            <div class="action-sheet-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <button class="action-btn entrada" data-type="extra_inicio" style="border-color: rgba(99, 102, 241, 0.2);">
+                    <span class="icon">⚡</span>
+                    <span style="color: var(--color-extra);">Iniciar Turno Extra</span>
+                </button>
+                <button class="action-btn salida" data-type="extra_fin" style="border-color: rgba(239, 68, 68, 0.2);">
+                    <span class="icon">🔴</span>
+                    <span style="color: var(--color-salida);">Finalizar Turno</span>
+                </button>
+            </div>
+            <button class="btn btn-secondary" id="btn-cancel-overtime" style="width: 100%;">Cancelar</button>
+        </div>
+
+        <!-- BACKDROP Y ACTION SHEET PARA CONFIRMACIÓN DE MARCA ESPECÍFICA -->
+        <div class="backdrop" id="confirm-backdrop"></div>
+        <div class="action-sheet" id="confirm-action-sheet">
+            <div class="action-sheet-header">
+                <h3>Confirmar Registro</h3>
+                <p>Se ha detectado un código de marcación rápida:</p>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; margin-bottom: 1.5rem; text-align: center;">
+                <span id="confirm-icon" style="font-size: 3rem; margin-bottom: 0.25rem;">🟢</span>
+                <h4 id="confirm-action-name" style="font-size: 1.25rem; font-weight: 700; color: white;">Entrada</h4>
+                <p id="confirm-time" style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem;">Hora actual: --:--</p>
+            </div>
+
+            <div class="flex gap-2">
+                <button class="btn btn-secondary flex-1" id="btn-cancel-confirm">Cancelar</button>
+                <button class="btn btn-success flex-1" id="btn-save-confirm">Confirmar Registro</button>
+            </div>
+        </div>
+
+        <!-- Contenedor de Toasts -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <footer class="app-footer">
+            <p>&copy; 2026 QRAssist System &bull; Portal Móvil Autenticado</p>
+        </footer>
+    </div>
+
+    <!-- Scripts de la Aplicación -->
+    <script src="js/database.js"></script>
+    <script src="js/worker.js"></script>
+</body>
+</html>
