@@ -30,12 +30,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-calculate-payroll').addEventListener('click', handleCalculatePayroll);
     document.getElementById('btn-print-paystub').addEventListener('click', () => window.print());
 
+    // Eventos del Modal de Creación de Trabajadores
+    document.getElementById('btn-add-worker-modal').addEventListener('click', () => openWorkerModal());
+    document.getElementById('btn-close-worker-modal').addEventListener('click', closeWorkerModal);
+    document.getElementById('btn-cancel-worker-modal').addEventListener('click', closeWorkerModal);
+    document.getElementById('worker-form').addEventListener('submit', handleSaveWorker);
+
     // Monitorear cambios en la base de datos en tiempo real (Tesis Feature)
     window.AppDB.onRecordsChange(() => {
         if (supervisorUser) {
             updateDashboardData();
         }
     });
+
+    window.AppDB.onUsersChange(() => {
+        if (supervisorUser) {
+            populateSelectFilters();
+            loadWorkersList();
+            loadWorkerStatusSidebar();
+        }
+    });
+
+    // Formateadores automáticos de RUT
+    setupRutFormatting('rut-input');
+    setupRutFormatting('worker-rut');
 });
 
 // --- SESIÓN DE USUARIO ---
@@ -97,6 +115,12 @@ function showDashboard() {
     populateSelectFilters();
     populateMonthSelector();
 
+    // Ajustar visibilidad inicial de la barra lateral (pestaña por defecto: 'live')
+    const sidebar = document.querySelector('.sidebar');
+    const grid = document.getElementById('dashboard-section');
+    sidebar.style.display = 'block';
+    grid.classList.remove('full-width');
+
     // Cargar información inicial
     updateDashboardData();
 }
@@ -105,6 +129,7 @@ function updateDashboardData() {
     loadLiveScans();
     loadHistoryRecords();
     loadWorkerStatusSidebar();
+    loadWorkersList();
 }
 
 // --- NAVEGACIÓN POR PESTAÑAS ---
@@ -124,6 +149,17 @@ function setupTabs() {
             const targetTab = btn.getAttribute('data-tab');
             document.getElementById(`tab-${targetTab}`).classList.add('active');
             
+            // Ajustar visibilidad de la barra lateral y ancho del dashboard según la pestaña
+            const sidebar = document.querySelector('.sidebar');
+            const grid = document.getElementById('dashboard-section');
+            if (targetTab === 'live' || targetTab === 'workers') {
+                sidebar.style.display = 'block';
+                grid.classList.remove('full-width');
+            } else {
+                sidebar.style.display = 'none';
+                grid.classList.add('full-width');
+            }
+
             // Recargar datos si es necesario
             updateDashboardData();
         });
@@ -495,4 +531,188 @@ function showToast(message, type = 'info') {
         toast.style.animation = 'slideIn 0.3s reverse forwards';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// --- GESTIÓN DE TRABAJADORES ---
+
+function loadWorkersList() {
+    const workers = window.AppDB.getUsers().filter(u => u.role === 'worker');
+    const tbody = document.getElementById('workers-list-table');
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    if (workers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center" style="color: var(--text-muted); font-style: italic; padding: 1.5rem;">
+                    No hay trabajadores registrados.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    workers.forEach(w => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight: 500; color: white;">${w.name}</td>
+            <td style="font-feature-settings: 'tnum';">${w.rut}</td>
+            <td style="font-feature-settings: 'tnum'; font-family: monospace;">${w.password}</td>
+            <td><span class="status-badge status-overtime" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Trabajador 👥</span></td>
+            <td style="font-feature-settings: 'tnum'; font-weight: 600;">$${w.baseSalary.toLocaleString('es-CL')}</td>
+            <td>
+                <div class="flex gap-1">
+                    <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none; min-width: 95px;" onclick="openWorkerModal('${w.rut}')">
+                        📝 Editar
+                    </button>
+                    <button class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem; min-width: 95px;" onclick="handleDeleteWorker('${w.rut}')">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.handleDeleteWorker = function(rut) {
+    if (confirm(`¿Está seguro de que desea eliminar al trabajador con RUT ${rut}? Esta acción borrará permanentemente su cuenta.`)) {
+        try {
+            window.AppDB.deleteWorker(rut);
+            showToast("Trabajador eliminado exitosamente.", "warning");
+            
+            // Actualizar localmente
+            populateSelectFilters();
+            loadWorkersList();
+            loadWorkerStatusSidebar();
+        } catch (error) {
+            showToast(error.message || "Error al eliminar el trabajador.", "error");
+        }
+    }
+};
+
+window.openWorkerModal = function(rut = null) {
+    const backdrop = document.getElementById('worker-modal-backdrop');
+    const modal = document.getElementById('worker-modal');
+    const title = document.getElementById('worker-modal-title');
+    const rutInput = document.getElementById('worker-rut');
+    const saveBtn = document.getElementById('btn-save-worker');
+    
+    if (rut) {
+        // Modo Edición
+        title.textContent = "Editar Trabajador";
+        rutInput.value = rut;
+        rutInput.disabled = true; // El RUT es inmutable
+        saveBtn.textContent = "Guardar Cambios";
+
+        const worker = window.AppDB.getUsers().find(w => w.rut === rut);
+        if (worker) {
+            document.getElementById('worker-name').value = worker.name;
+            document.getElementById('worker-password').value = worker.password;
+            document.getElementById('worker-salary').value = worker.baseSalary;
+        }
+    } else {
+        // Modo Creación
+        title.textContent = "Agregar Nuevo Trabajador";
+        rutInput.value = "";
+        rutInput.disabled = false;
+        saveBtn.textContent = "Registrar Trabajador";
+
+        document.getElementById('worker-name').value = "";
+        document.getElementById('worker-password').value = "";
+        document.getElementById('worker-salary').value = "600000";
+    }
+    
+    backdrop.style.display = 'block';
+    setTimeout(() => {
+        backdrop.classList.add('active');
+        modal.classList.add('active');
+    }, 10);
+};
+
+function closeWorkerModal() {
+    const backdrop = document.getElementById('worker-modal-backdrop');
+    const modal = document.getElementById('worker-modal');
+
+    backdrop.classList.remove('active');
+    modal.classList.remove('active');
+
+    setTimeout(() => {
+        backdrop.style.display = 'none';
+    }, 300);
+}
+
+function handleSaveWorker(e) {
+    e.preventDefault();
+    const rutInput = document.getElementById('worker-rut');
+    const rut = rutInput.value.trim();
+    const name = document.getElementById('worker-name').value.trim();
+    const password = document.getElementById('worker-password').value.trim();
+    const salary = Number(document.getElementById('worker-salary').value);
+    const isEditMode = rutInput.disabled;
+
+    if (!rut || !name || !password || isNaN(salary) || salary < 0) {
+        showToast("Por favor complete todos los campos correctamente.", "error");
+        return;
+    }
+
+    try {
+        if (isEditMode) {
+            window.AppDB.updateWorker(rut, name, password, salary);
+            showToast("Trabajador actualizado exitosamente.", "success");
+        } else {
+            window.AppDB.addWorker(rut, name, password, salary);
+            showToast("Trabajador registrado exitosamente.", "success");
+        }
+        closeWorkerModal();
+        
+        // Actualizar vistas locales
+        populateSelectFilters();
+        loadWorkersList();
+        loadWorkerStatusSidebar();
+    } catch (error) {
+        showToast(error.message || "Error al guardar el trabajador.", "error");
+    }
+}
+
+// --- UTILERÍAS COMPARTIDAS ---
+
+function setupRutFormatting(inputId) {
+    const inputElement = document.getElementById(inputId);
+    if (!inputElement) return;
+
+    inputElement.addEventListener('input', () => {
+        let value = inputElement.value;
+        let cleaned = value.replace(/[^0-9kK]/g, '');
+        if (!cleaned) {
+            inputElement.value = '';
+            return;
+        }
+        if (cleaned.length > 9) cleaned = cleaned.slice(0, 9);
+        
+        let formatted = '';
+        if (cleaned.length === 1) {
+            formatted = cleaned;
+        } else {
+            const dv = cleaned.slice(-1).toUpperCase();
+            const body = cleaned.slice(0, -1);
+            let formattedBody = '';
+            if (body.length <= 3) {
+                formattedBody = body;
+            } else if (body.length <= 6) {
+                formattedBody = body.slice(0, -3) + '.' + body.slice(-3);
+            } else {
+                formattedBody = body.slice(0, -6) + '.' + body.slice(-6, -3) + '.' + body.slice(-3);
+            }
+            formatted = formattedBody + '-' + dv;
+        }
+        
+        const start = inputElement.selectionStart;
+        const prevLen = value.length;
+        
+        inputElement.value = formatted;
+        
+        const diff = formatted.length - prevLen;
+        inputElement.setSelectionRange(start + diff, start + diff);
+    });
 }

@@ -933,28 +933,50 @@ tr:hover td {
         color: black !important;
     }
     
-    .app-container, .app-header, .tab-nav, .sidebar, #tab-payroll > .card > *:not(#payroll-results-container), #payroll-results-container > *:not(#paystub-print-card), .app-footer, .btn, .toast-container {
+    /* Ocultar quirúrgicamente todos los elementos hermanos que no sean ancestros de la boleta */
+    body > *:not(.app-container),
+    .app-container > *:not(main),
+    main > *:not(#dashboard-section),
+    #dashboard-section > *:not(.main-dashboard),
+    .main-dashboard > *:not(#tab-payroll),
+    #tab-payroll > *:not(.card),
+    #tab-payroll > .card > *:not(#payroll-results-container),
+    #payroll-results-container > *:not(#paystub-print-card),
+    .app-footer,
+    .btn,
+    .toast-container {
         display: none !important;
     }
     
-    .app-container {
-        padding: 0 !important;
-        margin: 0 !important;
-        max-width: 100% !important;
+    /* Aplanar y limpiar el comportamiento de diseño de todos los contenedores padres */
+    html, body, .app-container, main, #dashboard-section, .main-dashboard, #tab-payroll, #tab-payroll > .card, #payroll-results-container {
+        display: block !important;
+        position: static !important;
+        overflow: visible !important;
+        width: 100% !important;
+        height: auto !important;
         min-height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
     
-    #tab-payroll, #payroll-results-container, #paystub-print-card {
+    /* Reglas específicas para la boleta impresa en su tamaño real y sin recortes */
+    #paystub-print-card {
         display: block !important;
         width: 100% !important;
-        position: absolute;
-        left: 0;
-        top: 0;
+        position: relative !important;
+        overflow: visible !important;
         margin: 0 !important;
         padding: 1.5cm !important;
         background: white !important;
         color: black !important;
-        border: none !important;
+        border: 1px solid #ccc !important;
+        border-radius: 0 !important;
         box-shadow: none !important;
     }
     

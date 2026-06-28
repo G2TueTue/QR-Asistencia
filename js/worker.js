@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners de Botones en las Hojas de Acción (Action Sheets)
     setupActionSheetListeners();
+
+    // Formateador automático de RUT
+    setupRutFormatting('rut-input');
 });
 
 // --- SESIÓN DE USUARIO ---
@@ -456,4 +459,46 @@ function showToast(message, type = 'info') {
         toast.style.animation = 'slideIn 0.3s reverse forwards';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// --- UTILERÍAS COMPARTIDAS ---
+
+function setupRutFormatting(inputId) {
+    const inputElement = document.getElementById(inputId);
+    if (!inputElement) return;
+
+    inputElement.addEventListener('input', () => {
+        let value = inputElement.value;
+        let cleaned = value.replace(/[^0-9kK]/g, '');
+        if (!cleaned) {
+            inputElement.value = '';
+            return;
+        }
+        if (cleaned.length > 9) cleaned = cleaned.slice(0, 9);
+        
+        let formatted = '';
+        if (cleaned.length === 1) {
+            formatted = cleaned;
+        } else {
+            const dv = cleaned.slice(-1).toUpperCase();
+            const body = cleaned.slice(0, -1);
+            let formattedBody = '';
+            if (body.length <= 3) {
+                formattedBody = body;
+            } else if (body.length <= 6) {
+                formattedBody = body.slice(0, -3) + '.' + body.slice(-3);
+            } else {
+                formattedBody = body.slice(0, -6) + '.' + body.slice(-6, -3) + '.' + body.slice(-3);
+            }
+            formatted = formattedBody + '-' + dv;
+        }
+        
+        const start = inputElement.selectionStart;
+        const prevLen = value.length;
+        
+        inputElement.value = formatted;
+        
+        const diff = formatted.length - prevLen;
+        inputElement.setSelectionRange(start + diff, start + diff);
+    });
 }

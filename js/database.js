@@ -90,6 +90,9 @@ class DatabaseManager {
             if (users.length > 0) {
                 localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
                 console.log("Usuarios sincronizados desde Firebase:", users.length);
+                if (this.onUsersChangeCallback) {
+                    this.onUsersChangeCallback(users);
+                }
             } else {
                 // Si la colección está vacía, subimos los usuarios por defecto
                 this.uploadDefaultUsers();
@@ -214,6 +217,10 @@ class DatabaseManager {
         this.onRecordsChangeCallback = callback;
     }
 
+    onUsersChange(callback) {
+        this.onUsersChangeCallback = callback;
+    }
+
     // --- MÉTODOS DE USUARIOS ---
 
     getUsers() {
@@ -222,6 +229,105 @@ class DatabaseManager {
 
     getUserByRut(rut) {
         return this.getUsers().find(u => u.rut === rut);
+    }
+
+    addWorker(rut, name, password, baseSalary) {
+        const users = this.getUsers();
+        
+        // Verificar si el RUT ya existe
+        if (users.some(u => u.rut === rut)) {
+            throw new Error("El RUT ya está registrado.");
+        }
+        
+        const newWorker = {
+            rut: rut,
+            name: name,
+            password: password,
+            role: 'worker', // Rol fijo como trabajador
+            baseSalary: Number(baseSalary),
+            targetHours: 160 // Meta por defecto
+        };
+        
+        users.push(newWorker);
+        localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
+        
+        // Guardar en Firebase si está activo
+        if (USE_FIREBASE && window.FirebaseDB) {
+            const firebaseUser = {
+                nombre: name,
+                contrasena: password,
+                rol: 'worker',
+                sueldo_base: Number(baseSalary),
+                horas_meta: 160
+            };
+            window.FirebaseDB.collection('Usuarios').doc(rut).set(firebaseUser)
+                .then(() => console.log("Usuario guardado en Firebase:", rut))
+                .catch(err => console.error("Error al guardar usuario en Firebase:", err));
+        }
+        
+        if (this.onUsersChangeCallback) {
+            this.onUsersChangeCallback(users);
+        }
+        
+        return newWorker;
+    }
+
+    deleteWorker(rut) {
+        let users = this.getUsers();
+        
+        // Verificar si el usuario existe
+        if (!users.some(u => u.rut === rut)) {
+            throw new Error("El trabajador no existe.");
+        }
+        
+        users = users.filter(u => u.rut !== rut);
+        localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
+        
+        // Borrar en Firebase si está activo
+        if (USE_FIREBASE && window.FirebaseDB) {
+            window.FirebaseDB.collection('Usuarios').doc(rut).delete()
+                .then(() => console.log("Usuario eliminado de Firebase:", rut))
+                .catch(err => console.error("Error al eliminar usuario en Firebase:", err));
+        }
+        
+        if (this.onUsersChangeCallback) {
+            this.onUsersChangeCallback(users);
+        }
+    }
+
+    updateWorker(rut, name, password, baseSalary) {
+        const users = this.getUsers();
+        const userIdx = users.findIndex(u => u.rut === rut);
+        
+        if (userIdx === -1) {
+            throw new Error("El trabajador no existe.");
+        }
+        
+        users[userIdx].name = name;
+        users[userIdx].password = password;
+        users[userIdx].baseSalary = Number(baseSalary);
+        
+        localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
+        
+        // Actualizar en Firebase si está activo
+        if (USE_FIREBASE && window.FirebaseDB) {
+            const firebaseUser = {
+                nombre: name,
+                contrasena: password,
+                rol: 'worker',
+                sueldo_base: Number(baseSalary),
+                horas_meta: users[userIdx].targetHours || 160
+            };
+            window.FirebaseDB.collection('Usuarios').doc(rut).update(firebaseUser)
+                .then(() => console.log("Usuario actualizado en Firebase:", rut))
+                .catch(err => console.error("Error al actualizar usuario en Firebase:", err));
+        }
+        
+        if (this.onUsersChangeCallback) {
+            this.onUsersChangeCallback(users);
+        }
+        
+        return users[userIdx];
     }
 
     login(rut, password) {
