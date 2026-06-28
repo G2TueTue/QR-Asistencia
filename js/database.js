@@ -8,12 +8,15 @@
  */
 
 // Toggle para activar Firebase cuando se configuren las credenciales en firebase-config.js
-const USE_FIREBASE = false; 
+const USE_FIREBASE = true; 
 
 class DatabaseManager {
     constructor() {
         this.initLocalStorage();
         this.setupTabSynchronization();
+        if (USE_FIREBASE && window.IsFirebaseConfigured) {
+            this.initFirebaseSync();
+        }
     }
 
     // Inicializa datos de prueba y se asegura de sobreescribir claves viejas/corruptas de otros proyectos
@@ -66,6 +69,135 @@ class DatabaseManager {
             const testRecords = this.generateTestRecords();
             localStorage.setItem('qr_asistencia_records', JSON.stringify(testRecords));
         }
+    }
+
+    // Inicializar escuchas y sincronización en tiempo real con Firebase Firestore
+    initFirebaseSync() {
+        if (!window.FirebaseDB) {
+            console.warn("FirebaseDB no está inicializado. Ejecutando en modo local.");
+            return;
+        }
+
+        const db = window.FirebaseDB;
+
+        // 1. Escuchar la colección 'Usuarios' en tiempo real
+        db.collection('Usuarios').onSnapshot((snapshot) => {
+            const users = [];
+            snapshot.forEach((doc) => {
+                users.push(this.mapUserFromFirestore(doc));
+            });
+
+            if (users.length > 0) {
+                localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
+                console.log("Usuarios sincronizados desde Firebase:", users.length);
+            } else {
+                // Si la colección está vacía, subimos los usuarios por defecto
+                this.uploadDefaultUsers();
+            }
+        }, (error) => {
+            console.error("Error sincronizando usuarios de Firebase:", error);
+        });
+
+        // 2. Escuchar la colección 'asistencias' en tiempo real
+        db.collection('asistencias').onSnapshot((snapshot) => {
+            const records = [];
+            snapshot.forEach((doc) => {
+                records.push(this.mapRecordFromFirestore(doc));
+            });
+
+            localStorage.setItem('qr_asistencia_records', JSON.stringify(records));
+            console.log("Registros de asistencia sincronizados desde Firebase:", records.length);
+
+            // Disparar callback para actualizar interfaces
+            if (this.onRecordsChangeCallback) {
+                this.onRecordsChangeCallback(records);
+            }
+        }, (error) => {
+            console.error("Error sincronizando asistencias de Firebase:", error);
+        });
+    }
+
+    mapUserFromFirestore(doc) {
+        const data = doc.data();
+        return {
+            rut: doc.id,
+            name: data.nombre || data.name || '',
+            password: data.contrasena || data.password || '',
+            role: data.rol || data.role || 'worker',
+            baseSalary: Number(data.sueldo_base || data.baseSalary || 600000),
+            targetHours: Number(data.horas_meta || data.targetHours || 160)
+        };
+    }
+
+    mapRecordFromFirestore(doc) {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            rut: data.rut || '',
+            date: data.fecha || data.date || '',
+            timestamp: data.marca_tiempo || data.timestamp || '',
+            type: data.tipo || data.type || '',
+            source: data.origen || data.source || '',
+            editedBy: data.editado_por || data.editedBy || null,
+            editedAt: data.editado_en || data.editedAt || null
+        };
+    }
+
+    mapRecordToFirestore(record) {
+        return {
+            rut: record.rut || '',
+            fecha: record.date || '',
+            marca_tiempo: record.timestamp || '',
+            tipo: record.type || '',
+            origen: record.source || '',
+            editado_por: record.editedBy || null,
+            editado_en: record.editedAt || null
+        };
+    }
+
+    async uploadDefaultUsers() {
+        const db = window.FirebaseDB;
+        if (!db) return;
+
+        const defaultUsers = [
+            {
+                rut: "12.345.678-9",
+                name: "Juan Pérez",
+                password: "1234",
+                role: "worker",
+                baseSalary: 600000,
+                targetHours: 160
+            },
+            {
+                rut: "18.765.432-1",
+                name: "María González",
+                password: "5678",
+                role: "worker",
+                baseSalary: 600000,
+                targetHours: 160
+            },
+            {
+                rut: "99.999.999-9",
+                name: "Supervisor Admin",
+                password: "admin",
+                role: "supervisor"
+            }
+        ];
+
+        console.log("Subiendo usuarios por defecto a Firebase...");
+        const batch = db.batch();
+        defaultUsers.forEach(user => {
+            const docRef = db.collection('Usuarios').doc(user.rut);
+            batch.set(docRef, {
+                nombre: user.name,
+                contrasena: user.password,
+                rol: user.role,
+                sueldo_base: user.baseSalary || null,
+                horas_meta: user.targetHours || null
+            });
+        });
+        await batch.commit();
+        console.log("Usuarios por defecto subidos exitosamente.");
     }
 
     // Escucha cambios en LocalStorage desde otras pestañas (ej: el celular escanea y el PC del supervisor se actualiza)
@@ -144,6 +276,13 @@ class DatabaseManager {
         records.push(newRecord);
         localStorage.setItem('qr_asistencia_records', JSON.stringify(records));
 
+        // Persistir en Firebase
+        if (USE_FIREBASE && window.FirebaseDB) {
+            window.FirebaseDB.collection('asistencias').doc(newRecord.id).set(this.mapRecordToFirestore(newRecord))
+                .then(() => console.log("Registro guardado en Firebase:", newRecord.id))
+                .catch(err => console.error("Error al guardar registro en Firebase:", err));
+        }
+
         // Disparar evento local para que la misma pestaña sepa que cambió
         if (this.onRecordsChangeCallback) {
             this.onRecordsChangeCallback(records);
@@ -173,6 +312,13 @@ class DatabaseManager {
         records.push(newRecord);
         localStorage.setItem('qr_asistencia_records', JSON.stringify(records));
 
+        // Persistir en Firebase
+        if (USE_FIREBASE && window.FirebaseDB) {
+            window.FirebaseDB.collection('asistencias').doc(newRecord.id).set(this.mapRecordToFirestore(newRecord))
+                .then(() => console.log("Registro manual guardado en Firebase:", newRecord.id))
+                .catch(err => console.error("Error al guardar registro manual en Firebase:", err));
+        }
+
         if (this.onRecordsChangeCallback) {
             this.onRecordsChangeCallback(records);
         }
@@ -200,6 +346,13 @@ class DatabaseManager {
 
             localStorage.setItem('qr_asistencia_records', JSON.stringify(records));
 
+            // Actualizar en Firebase
+            if (USE_FIREBASE && window.FirebaseDB) {
+                window.FirebaseDB.collection('asistencias').doc(id).set(this.mapRecordToFirestore(records[index]))
+                    .then(() => console.log("Registro actualizado en Firebase:", id))
+                    .catch(err => console.error("Error al actualizar registro en Firebase:", err));
+            }
+
             if (this.onRecordsChangeCallback) {
                 this.onRecordsChangeCallback(records);
             }
@@ -215,6 +368,13 @@ class DatabaseManager {
         let records = this.getAllRecords();
         records = records.filter(r => r.id !== id);
         localStorage.setItem('qr_asistencia_records', JSON.stringify(records));
+
+        // Eliminar de Firebase
+        if (USE_FIREBASE && window.FirebaseDB) {
+            window.FirebaseDB.collection('asistencias').doc(id).delete()
+                .then(() => console.log("Registro eliminado de Firebase:", id))
+                .catch(err => console.error("Error al eliminar registro de Firebase:", err));
+        }
 
         if (this.onRecordsChangeCallback) {
             this.onRecordsChangeCallback(records);

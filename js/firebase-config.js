@@ -18,16 +18,17 @@
 
 // Configuración de Firebase (Remplaza con tus llaves de Firebase Console)
 const firebaseConfig = {
-    apiKey: "TU_API_KEY_AQUÍ",
-    authDomain: "TU_PROJECT_ID.firebaseapp.com",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_PROJECT_ID.appspot.com",
-    messagingSenderId: "TU_MESSAGING_SENDER_ID",
-    appId: "TU_APP_ID"
+  apiKey: "AIzaSyDK4vICIVRyu6afV228I83IAA-9-lJaKIo",
+  authDomain: "qr-asistencia-fd3cd.firebaseapp.com",
+  projectId: "qr-asistencia-fd3cd",
+  storageBucket: "qr-asistencia-fd3cd.firebasestorage.app",
+  messagingSenderId: "76470030383",
+  appId: "1:76470030383:web:db54a7ed67d370f9bfb6da",
+  measurementId: "G-8JX803E709"
 };
 
 // Variable para verificar si el usuario completó la configuración
-const isFirebaseConfigured = firebaseConfig.apiKey !== "TU_API_KEY_AQUÍ";
+const isFirebaseConfigured = firebaseConfig.apiKey !== "" && firebaseConfig.apiKey !== "TU_API_KEY_AQUÍ";
 
 let db = null;
 let auth = null;
