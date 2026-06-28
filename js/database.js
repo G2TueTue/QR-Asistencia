@@ -260,13 +260,13 @@ class DatabaseManager {
     addRecord(rut, type, source = 'qr_general') {
         const records = this.getAllRecords();
         const now = new Date();
-        const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dateStr = window.getChileanDateStr(now); // YYYY-MM-DD local de Chile
 
         const newRecord = {
             id: 'rec_' + Math.random().toString(36).substr(2, 9),
             rut: rut,
             date: dateStr,
-            timestamp: now.toISOString(),
+            timestamp: window.getChileanTimestamp(now),
             type: type,
             source: source,
             editedBy: null,
@@ -296,7 +296,7 @@ class DatabaseManager {
      */
     addManualRecord(rut, dateStr, timeStr, type, supervisorRut) {
         const records = this.getAllRecords();
-        const timestamp = new Date(`${dateStr}T${timeStr}:00`).toISOString();
+        const timestamp = `${dateStr} ${timeStr}:00`;
 
         const newRecord = {
             id: 'rec_' + Math.random().toString(36).substr(2, 9),
@@ -306,7 +306,7 @@ class DatabaseManager {
             type: type,
             source: 'manual',
             editedBy: supervisorRut,
-            editedAt: new Date().toISOString()
+            editedAt: window.getChileanTimestamp()
         };
 
         records.push(newRecord);
@@ -334,14 +334,14 @@ class DatabaseManager {
         const index = records.findIndex(r => r.id === id);
 
         if (index !== -1) {
-            const timestamp = new Date(`${dateStr}T${timeStr}:00`).toISOString();
+            const timestamp = `${dateStr} ${timeStr}:00`;
             records[index] = {
                 ...records[index],
                 date: dateStr,
                 timestamp: timestamp,
                 type: type,
                 editedBy: supervisorRut,
-                editedAt: new Date().toISOString()
+                editedAt: window.getChileanTimestamp()
             };
 
             localStorage.setItem('qr_asistencia_records', JSON.stringify(records));
@@ -388,7 +388,7 @@ class DatabaseManager {
      * Obtiene el último estado conocido del trabajador hoy.
      */
     getWorkerTodayStatus(rut) {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = window.getChileanDateStr();
         const todayRecords = this.getRecordsByWorker(rut)
             .filter(r => r.date === todayStr)
             .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -422,66 +422,229 @@ class DatabaseManager {
     calculateMonthlyBreakdown(rut, year, month) {
         const records = this.getRecordsByWorker(rut);
         
-        // Filtrar por mes y año
-        const filteredRecords = records.filter(r => {
-            const date = new Date(r.timestamp);
-            return date.getFullYear() === year && date.getMonth() === month;
-        });
-
-        // Agrupar por fecha
-        const recordsByDate = {};
-        filteredRecords.forEach(r => {
-            if (!recordsByDate[r.date]) {
-                recordsByDate[r.date] = [];
-            }
-            recordsByDate[r.date].push(r);
-        });
-
-        const breakdown = [];
-
-        // Para cada día con registros
-        Object.keys(recordsByDate).forEach(dateStr => {
-            const dayRecords = recordsByDate[dateStr].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        // Ordenar todos los registros de este trabajador cronológicamente
+        const sortedRecords = [...records].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        const shifts = [];
+        let activeEntrada = null;
+        let activeExtra = null;
+        
+        for (let i = 0; i < sortedRecords.length; i++) {
+            const record = sortedRecords[i];
             
-            let entrada = null;
-            let salida = null;
-            let extraInicios = [];
-            let extraFines = [];
-
-            dayRecords.forEach(r => {
-                if (r.type === 'entrada') entrada = new Date(r.timestamp);
-                if (r.type === 'salida') salida = new Date(r.timestamp);
-                if (r.type === 'extra_inicio') extraInicios.push(new Date(r.timestamp));
-                if (r.type === 'extra_fin') extraFines.push(new Date(r.timestamp));
+            if (record.type === 'entrada') {
+                if (activeEntrada) {
+                    // Turno previo sin salida (incompleto)
+                    shifts.push({
+                        date: activeEntrada.date,
+                        type: 'regular',
+                        entrada: new Date(activeEntrada.timestamp),
+                        salida: null,
+                        regularHours: 0,
+                        overtimeHours: 0,
+                        rawRecords: [activeEntrada]
+                    });
+                }
+                activeEntrada = record;
+            } else if (record.type === 'salida') {
+                if (activeEntrada) {
+                    const entradaDate = new Date(activeEntrada.timestamp);
+                    const salidaDate = new Date(record.timestamp);
+                    const diffMs = salidaDate - entradaDate;
+                    const diffHrs = diffMs / (1000 * 60 * 60);
+                    
+                    if (diffHrs > 20.0) {
+                        // Si pasan más de 20 horas, asumimos marcas independientes (olvido de marcar)
+                        shifts.push({
+                            date: activeEntrada.date,
+                            type: 'regular',
+                            entrada: entradaDate,
+                            salida: null,
+                            regularHours: 0,
+                            overtimeHours: 0,
+                            rawRecords: [activeEntrada]
+                        });
+                        shifts.push({
+                            date: record.date,
+                            type: 'regular',
+                            entrada: null,
+                            salida: salidaDate,
+                            regularHours: 0,
+                            overtimeHours: 0,
+                            rawRecords: [record]
+                        });
+                    } else {
+                        const regularHours = Math.max(0, diffHrs - 1.0); // Descontar colación obligatoria
+                        shifts.push({
+                            date: activeEntrada.date, // Se atribuye a la fecha de entrada
+                            type: 'regular',
+                            entrada: entradaDate,
+                            salida: salidaDate,
+                            regularHours: parseFloat(regularHours.toFixed(2)),
+                            overtimeHours: 0,
+                            rawRecords: [activeEntrada, record]
+                        });
+                    }
+                    activeEntrada = null;
+                } else {
+                    // Salida sin entrada
+                    shifts.push({
+                        date: record.date,
+                        type: 'regular',
+                        entrada: null,
+                        salida: new Date(record.timestamp),
+                        regularHours: 0,
+                        overtimeHours: 0,
+                        rawRecords: [record]
+                    });
+                }
+            } else if (record.type === 'extra_inicio') {
+                if (activeExtra) {
+                    // Turno extra previo sin salida
+                    shifts.push({
+                        date: activeExtra.date,
+                        type: 'extra',
+                        entrada: null,
+                        salida: null,
+                        regularHours: 0,
+                        overtimeHours: 0,
+                        rawRecords: [activeExtra]
+                    });
+                }
+                activeExtra = record;
+            } else if (record.type === 'extra_fin') {
+                if (activeExtra) {
+                    const extraInDate = new Date(activeExtra.timestamp);
+                    const extraFinDate = new Date(record.timestamp);
+                    const diffMs = extraFinDate - extraInDate;
+                    const diffHrs = diffMs / (1000 * 60 * 60);
+                    
+                    if (diffHrs > 16.0) {
+                        // Extra extremadamente largo
+                        shifts.push({
+                            date: activeExtra.date,
+                            type: 'extra',
+                            entrada: null,
+                            salida: null,
+                            regularHours: 0,
+                            overtimeHours: 0,
+                            rawRecords: [activeExtra]
+                        });
+                        shifts.push({
+                            date: record.date,
+                            type: 'extra',
+                            entrada: null,
+                            salida: null,
+                            regularHours: 0,
+                            overtimeHours: 0,
+                            rawRecords: [record]
+                        });
+                    } else {
+                        shifts.push({
+                            date: activeExtra.date,
+                            type: 'extra',
+                            entrada: null,
+                            salida: null,
+                            regularHours: 0,
+                            overtimeHours: parseFloat(diffHrs.toFixed(2)),
+                            rawRecords: [activeExtra, record]
+                        });
+                    }
+                    activeExtra = null;
+                } else {
+                    // Fin de extra sin inicio
+                    shifts.push({
+                        date: record.date,
+                        type: 'extra',
+                        entrada: null,
+                        salida: null,
+                        regularHours: 0,
+                        overtimeHours: 0,
+                        rawRecords: [record]
+                    });
+                }
+            }
+        }
+        
+        // Guardar marcas que quedaron abiertas al final del ciclo
+        if (activeEntrada) {
+            shifts.push({
+                date: activeEntrada.date,
+                type: 'regular',
+                entrada: new Date(activeEntrada.timestamp),
+                salida: null,
+                regularHours: 0,
+                overtimeHours: 0,
+                rawRecords: [activeEntrada]
             });
-
-            // 1. Calcular jornada ordinaria (restando obligatoriamente 1 hora de colación)
-            let regularHours = 0;
-            if (entrada && salida) {
-                const diffMs = salida - entrada;
-                const diffHrs = diffMs / (1000 * 60 * 60);
-                regularHours = Math.max(0, diffHrs - 1.0); // Descontar 1 hora de colación obligatoria
+        }
+        if (activeExtra) {
+            shifts.push({
+                date: activeExtra.date,
+                type: 'extra',
+                entrada: null,
+                salida: null,
+                regularHours: 0,
+                overtimeHours: 0,
+                rawRecords: [activeExtra]
+            });
+        }
+        
+        // Agrupar los turnos calculados por su fecha
+        const shiftsByDate = {};
+        shifts.forEach(shift => {
+            if (!shiftsByDate[shift.date]) {
+                shiftsByDate[shift.date] = {
+                    entrada: null,
+                    salida: null,
+                    regularHours: 0,
+                    overtimeHours: 0,
+                    rawRecords: []
+                };
             }
-
-            // 2. Calcular jornada extraordinaria (sin restar colación)
-            let overtimeHours = 0;
-            const extraCount = Math.min(extraInicios.length, extraFines.length);
-            for (let i = 0; i < extraCount; i++) {
-                const diffMs = extraFines[i] - extraInicios[i];
-                overtimeHours += Math.max(0, diffMs / (1000 * 60 * 60));
+            
+            const group = shiftsByDate[shift.date];
+            
+            if (shift.entrada) {
+                if (!group.entrada || shift.entrada < group.entrada) {
+                    group.entrada = shift.entrada;
+                }
             }
-
-            breakdown.push({
-                date: dateStr,
-                entrada: entrada ? this.formatTime(entrada) : '--:--',
-                salida: salida ? this.formatTime(salida) : '--:--',
-                regularHours: parseFloat(regularHours.toFixed(2)),
-                overtimeHours: parseFloat(overtimeHours.toFixed(2)),
-                totalDaily: parseFloat((regularHours + overtimeHours).toFixed(2)),
-                rawRecords: dayRecords
+            if (shift.salida) {
+                if (!group.salida || shift.salida > group.salida) {
+                    group.salida = shift.salida;
+                }
+            }
+            
+            group.regularHours += shift.regularHours;
+            group.overtimeHours += shift.overtimeHours;
+            
+            // Evitar duplicar registros en rawRecords
+            shift.rawRecords.forEach(r => {
+                if (!group.rawRecords.some(existing => existing.id === r.id)) {
+                    group.rawRecords.push(r);
+                }
             });
         });
-
+        
+        // Filtrar y estructurar el breakdown final para el mes y año solicitado
+        const breakdown = [];
+        Object.keys(shiftsByDate).forEach(dateStr => {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            if (y === year && (m - 1) === month) {
+                const group = shiftsByDate[dateStr];
+                breakdown.push({
+                    date: dateStr,
+                    entrada: group.entrada ? this.formatTime(group.entrada) : '--:--',
+                    salida: group.salida ? this.formatTime(group.salida) : '--:--',
+                    regularHours: parseFloat(group.regularHours.toFixed(2)),
+                    overtimeHours: parseFloat(group.overtimeHours.toFixed(2)),
+                    totalDaily: parseFloat((group.regularHours + group.overtimeHours).toFixed(2)),
+                    rawRecords: group.rawRecords.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                });
+            }
+        });
+        
         // Ordenar breakdown por fecha ascendente
         return breakdown.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
@@ -565,13 +728,13 @@ class DatabaseManager {
             if (dayOfWeek === 0 || dayOfWeek === 6) {
                 // El sábado simulamos un turno de horas extras para Juan Pérez
                 if (dayOfWeek === 6 && day <= 10) {
-                    const dateStr = date.toISOString().split('T')[0];
+                    const dateStr = window.getChileanDateStr(date);
                     // Turno extra: 09:00 a 14:00 (5 horas extras)
                     records.push({
                         id: `rec_test_extra_i_${day}`,
                         rut: ruts[0],
                         date: dateStr,
-                        timestamp: new Date(year, month, day, 9, 0, 0).toISOString(),
+                        timestamp: window.getChileanTimestamp(new Date(year, month, day, 9, 0, 0)),
                         type: 'extra_inicio',
                         source: 'qr_extra',
                         editedBy: null,
@@ -581,7 +744,7 @@ class DatabaseManager {
                         id: `rec_test_extra_f_${day}`,
                         rut: ruts[0],
                         date: dateStr,
-                        timestamp: new Date(year, month, day, 14, 0, 0).toISOString(),
+                        timestamp: window.getChileanTimestamp(new Date(year, month, day, 14, 0, 0)),
                         type: 'extra_fin',
                         source: 'qr_extra',
                         editedBy: null,
@@ -591,14 +754,14 @@ class DatabaseManager {
                 continue; 
             }
 
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = window.getChileanDateStr(date);
 
             // Trabajador 1: Juan Pérez (jornada completa ordenada, ej. 08:00 a 18:00 = 10hrs brutas - 1hr colacion = 9hrs netas diarias)
             records.push({
                 id: `rec_test_1_e_${day}`,
                 rut: ruts[0],
                 date: dateStr,
-                timestamp: new Date(year, month, day, 8, 0, 0).toISOString(),
+                timestamp: window.getChileanTimestamp(new Date(year, month, day, 8, 0, 0)),
                 type: 'entrada',
                 source: 'qr_general',
                 editedBy: null,
@@ -608,7 +771,7 @@ class DatabaseManager {
                 id: `rec_test_1_s_${day}`,
                 rut: ruts[0],
                 date: dateStr,
-                timestamp: new Date(year, month, day, 18, 0, 0).toISOString(),
+                timestamp: window.getChileanTimestamp(new Date(year, month, day, 18, 0, 0)),
                 type: 'salida',
                 source: 'qr_general',
                 editedBy: null,
@@ -623,7 +786,7 @@ class DatabaseManager {
                     id: `rec_test_2_e_${day}`,
                     rut: ruts[1],
                     date: dateStr,
-                    timestamp: new Date(year, month, day, entryHour, 0, 0).toISOString(),
+                    timestamp: window.getChileanTimestamp(new Date(year, month, day, entryHour, 0, 0)),
                     type: 'entrada',
                     source: 'qr_general',
                     editedBy: null,
@@ -633,7 +796,7 @@ class DatabaseManager {
                     id: `rec_test_2_s_${day}`,
                     rut: ruts[1],
                     date: dateStr,
-                    timestamp: new Date(year, month, day, exitHour, 0, 0).toISOString(),
+                    timestamp: window.getChileanTimestamp(new Date(year, month, day, exitHour, 0, 0)),
                     type: 'salida',
                     source: 'qr_general',
                     editedBy: null,

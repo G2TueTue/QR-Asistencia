@@ -181,7 +181,7 @@ function populateMonthSelector() {
 // --- PESTAÑA: MONITOREO EN VIVO (MARCAS DE HOY) ---
 
 function loadLiveScans() {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = window.getChileanDateStr();
     const records = window.AppDB.getAllRecords()
         .filter(r => r.date === todayStr)
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Más recientes primero
@@ -339,13 +339,13 @@ window.openAttendanceModal = function(id = null) {
         saveBtn.textContent = "Registrar Marca";
         workerSelect.disabled = false;
 
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = window.getChileanDateStr();
         document.getElementById('modal-date').value = todayStr;
 
-        const now = new Date();
-        const hour = String(now.getHours()).padStart(2, '0');
-        const min = String(now.getMinutes()).padStart(2, '0');
-        document.getElementById('modal-time').value = `${hour}:${min}`;
+        const ts = window.getChileanTimestamp(); // YYYY-MM-DD HH:mm:ss
+        const timePart = ts.split(' ')[1]; // HH:mm:ss
+        const hourMin = timePart.substring(0, 5); // HH:mm
+        document.getElementById('modal-time').value = hourMin;
     }
 
     backdrop.style.display = 'block';

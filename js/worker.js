@@ -108,7 +108,7 @@ function updateWorkerStatus() {
 
 // Carga las marcas realizadas por el usuario hoy en la tabla
 function loadTodayRecords() {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = window.getChileanDateStr();
     const records = window.AppDB.getRecordsByWorker(currentUser.rut)
         .filter(r => r.date === todayStr)
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Más recientes primero

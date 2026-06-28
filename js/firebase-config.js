@@ -51,3 +51,37 @@ if (isFirebaseConfigured) {
 window.FirebaseDB = db;
 window.FirebaseAuth = auth;
 window.IsFirebaseConfigured = isFirebaseConfigured;
+
+// Funciones de utilidad para manejar fechas en la zona horaria de Chile (Santiago)
+window.getChileanDateStr = function(date = new Date()) {
+    try {
+        return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Santiago' }).format(date).split(' ')[0];
+    } catch (e) {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+};
+
+window.getChileanTimestamp = function(date = new Date()) {
+    try {
+        const formatter = new Intl.DateTimeFormat('sv-SE', {
+            timeZone: 'America/Santiago',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        return formatter.format(date);
+    } catch (e) {
+        const pad = (n) => String(n).padStart(2, '0');
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+};
