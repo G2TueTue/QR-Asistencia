@@ -148,7 +148,7 @@ function setupTabs() {
             btn.classList.add('active');
             const targetTab = btn.getAttribute('data-tab');
             document.getElementById(`tab-${targetTab}`).classList.add('active');
-            
+
             // Ajustar visibilidad de la barra lateral y ancho del dashboard según la pestaña
             const sidebar = document.querySelector('.sidebar');
             const grid = document.getElementById('dashboard-section');
@@ -170,7 +170,7 @@ function setupTabs() {
 
 function populateSelectFilters() {
     const workers = window.AppDB.getUsers().filter(u => u.role === 'worker');
-    
+
     // Select de filtro historial
     const filterWorker = document.getElementById('filter-worker');
     // Select del modal manual
@@ -185,7 +185,7 @@ function populateSelectFilters() {
 
     workers.forEach(w => {
         const optText = `${w.name} (${w.rut})`;
-        
+
         filterWorker.innerHTML += `<option value="${w.rut}">${optText}</option>`;
         modalWorkerSelect.innerHTML += `<option value="${w.rut}">${optText}</option>`;
         payrollWorker.innerHTML += `<option value="${w.rut}">${optText}</option>`;
@@ -208,7 +208,7 @@ function populateMonthSelector() {
         const year = d.getFullYear();
         const monthIdx = d.getMonth();
         const monthName = months[monthIdx];
-        
+
         const value = `${year}-${monthIdx}`;
         monthSelect.innerHTML += `<option value="${value}">${monthName} ${year}</option>`;
     }
@@ -240,7 +240,7 @@ function loadLiveScans() {
         const worker = window.AppDB.getUserByRut(r.rut);
         const name = worker ? worker.name : "Desconocido";
         const timeStr = new Date(r.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-        
+
         let typeBadgeClass = "";
         let typeText = "";
 
@@ -306,7 +306,7 @@ function loadHistoryRecords() {
         const dateObj = new Date(r.timestamp);
         const dateStr = dateObj.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const timeStr = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
-        
+
         let typeBadgeClass = "";
         let typeText = "";
 
@@ -341,7 +341,7 @@ function loadHistoryRecords() {
 
 // --- MODAL DE REGISTRO MANUAL (AGREGAR / EDITAR) ---
 
-window.openAttendanceModal = function(id = null) {
+window.openAttendanceModal = function (id = null) {
     const backdrop = document.getElementById('modal-backdrop');
     const modal = document.getElementById('attendance-modal');
     const form = document.getElementById('attendance-form');
@@ -362,7 +362,7 @@ window.openAttendanceModal = function(id = null) {
         if (record) {
             workerSelect.value = record.rut;
             document.getElementById('modal-date').value = record.date;
-            
+
             const dateObj = new Date(record.timestamp);
             const hour = String(dateObj.getHours()).padStart(2, '0');
             const min = String(dateObj.getMinutes()).padStart(2, '0');
@@ -410,7 +410,7 @@ function handleSaveRecord(e) {
     const date = document.getElementById('modal-date').value;
     const time = document.getElementById('modal-time').value;
     const type = document.getElementById('modal-type-select').value;
-    
+
     const supervisorRut = supervisorUser.rut;
 
     if (id) {
@@ -427,7 +427,7 @@ function handleSaveRecord(e) {
     updateDashboardData();
 }
 
-window.handleDeleteRecord = function(id) {
+window.handleDeleteRecord = function (id) {
     if (confirm("¿Estás seguro de que deseas eliminar este registro de asistencia de forma permanente?")) {
         window.AppDB.deleteRecord(id);
         showToast("El registro ha sido eliminado correctamente.", "error");
@@ -443,7 +443,7 @@ function handleCalculatePayroll() {
     const [year, monthIdx] = period.split('-').map(Number);
 
     const payroll = window.AppDB.calculatePayroll(rut, year, monthIdx);
-    
+
     if (!payroll) {
         showToast("No se pudo calcular la liquidación. Verifica los datos del trabajador.", "error");
         return;
@@ -492,7 +492,7 @@ function loadWorkerStatusSidebar() {
 
     workers.forEach(w => {
         const statusObj = window.AppDB.getWorkerTodayStatus(w.rut);
-        
+
         const card = document.createElement('div');
         card.className = "worker-status-card";
         card.innerHTML = `
@@ -514,7 +514,7 @@ function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
+
     let icon = "ℹ️";
     if (type === 'success') icon = "🟢";
     if (type === 'warning') icon = "🥖";
@@ -524,9 +524,9 @@ function showToast(message, type = 'info') {
         <div style="font-size: 1.25rem;">${icon}</div>
         <div>${message}</div>
     `;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideIn 0.3s reverse forwards';
         setTimeout(() => toast.remove(), 300);
@@ -575,12 +575,12 @@ function loadWorkersList() {
     });
 }
 
-window.handleDeleteWorker = function(rut) {
+window.handleDeleteWorker = function (rut) {
     if (confirm(`¿Está seguro de que desea eliminar al trabajador con RUT ${rut}? Esta acción borrará permanentemente su cuenta.`)) {
         try {
             window.AppDB.deleteWorker(rut);
             showToast("Trabajador eliminado exitosamente.", "warning");
-            
+
             // Actualizar localmente
             populateSelectFilters();
             loadWorkersList();
@@ -591,13 +591,13 @@ window.handleDeleteWorker = function(rut) {
     }
 };
 
-window.openWorkerModal = function(rut = null) {
+window.openWorkerModal = function (rut = null) {
     const backdrop = document.getElementById('worker-modal-backdrop');
     const modal = document.getElementById('worker-modal');
     const title = document.getElementById('worker-modal-title');
     const rutInput = document.getElementById('worker-rut');
     const saveBtn = document.getElementById('btn-save-worker');
-    
+
     if (rut) {
         // Modo Edición
         title.textContent = "Editar Trabajador";
@@ -622,7 +622,7 @@ window.openWorkerModal = function(rut = null) {
         document.getElementById('worker-password').value = "";
         document.getElementById('worker-salary').value = "600000";
     }
-    
+
     backdrop.style.display = 'block';
     setTimeout(() => {
         backdrop.classList.add('active');
@@ -665,7 +665,7 @@ function handleSaveWorker(e) {
             showToast("Trabajador registrado exitosamente.", "success");
         }
         closeWorkerModal();
-        
+
         // Actualizar vistas locales
         populateSelectFilters();
         loadWorkersList();
@@ -689,7 +689,7 @@ function setupRutFormatting(inputId) {
             return;
         }
         if (cleaned.length > 9) cleaned = cleaned.slice(0, 9);
-        
+
         let formatted = '';
         if (cleaned.length === 1) {
             formatted = cleaned;
@@ -706,12 +706,12 @@ function setupRutFormatting(inputId) {
             }
             formatted = formattedBody + '-' + dv;
         }
-        
+
         const start = inputElement.selectionStart;
         const prevLen = value.length;
-        
+
         inputElement.value = formatted;
-        
+
         const diff = formatted.length - prevLen;
         inputElement.setSelectionRange(start + diff, start + diff);
     });

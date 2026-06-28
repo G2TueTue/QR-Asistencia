@@ -8,7 +8,7 @@
  */
 
 // Toggle para activar Firebase cuando se configuren las credenciales en firebase-config.js
-const USE_FIREBASE = true; 
+const USE_FIREBASE = true;
 
 class DatabaseManager {
     constructor() {
@@ -233,12 +233,12 @@ class DatabaseManager {
 
     addWorker(rut, name, password, baseSalary) {
         const users = this.getUsers();
-        
+
         // Verificar si el RUT ya existe
         if (users.some(u => u.rut === rut)) {
             throw new Error("El RUT ya está registrado.");
         }
-        
+
         const newWorker = {
             rut: rut,
             name: name,
@@ -247,10 +247,10 @@ class DatabaseManager {
             baseSalary: Number(baseSalary),
             targetHours: 160 // Meta por defecto
         };
-        
+
         users.push(newWorker);
         localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
-        
+
         // Guardar en Firebase si está activo
         if (USE_FIREBASE && window.FirebaseDB) {
             const firebaseUser = {
@@ -264,32 +264,32 @@ class DatabaseManager {
                 .then(() => console.log("Usuario guardado en Firebase:", rut))
                 .catch(err => console.error("Error al guardar usuario en Firebase:", err));
         }
-        
+
         if (this.onUsersChangeCallback) {
             this.onUsersChangeCallback(users);
         }
-        
+
         return newWorker;
     }
 
     deleteWorker(rut) {
         let users = this.getUsers();
-        
+
         // Verificar si el usuario existe
         if (!users.some(u => u.rut === rut)) {
             throw new Error("El trabajador no existe.");
         }
-        
+
         users = users.filter(u => u.rut !== rut);
         localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
-        
+
         // Borrar en Firebase si está activo
         if (USE_FIREBASE && window.FirebaseDB) {
             window.FirebaseDB.collection('Usuarios').doc(rut).delete()
                 .then(() => console.log("Usuario eliminado de Firebase:", rut))
                 .catch(err => console.error("Error al eliminar usuario en Firebase:", err));
         }
-        
+
         if (this.onUsersChangeCallback) {
             this.onUsersChangeCallback(users);
         }
@@ -298,17 +298,17 @@ class DatabaseManager {
     updateWorker(rut, name, password, baseSalary) {
         const users = this.getUsers();
         const userIdx = users.findIndex(u => u.rut === rut);
-        
+
         if (userIdx === -1) {
             throw new Error("El trabajador no existe.");
         }
-        
+
         users[userIdx].name = name;
         users[userIdx].password = password;
         users[userIdx].baseSalary = Number(baseSalary);
-        
+
         localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
-        
+
         // Actualizar en Firebase si está activo
         if (USE_FIREBASE && window.FirebaseDB) {
             const firebaseUser = {
@@ -322,11 +322,11 @@ class DatabaseManager {
                 .then(() => console.log("Usuario actualizado en Firebase:", rut))
                 .catch(err => console.error("Error al actualizar usuario en Firebase:", err));
         }
-        
+
         if (this.onUsersChangeCallback) {
             this.onUsersChangeCallback(users);
         }
-        
+
         return users[userIdx];
     }
 
@@ -527,17 +527,17 @@ class DatabaseManager {
      */
     calculateMonthlyBreakdown(rut, year, month) {
         const records = this.getRecordsByWorker(rut);
-        
+
         // Ordenar todos los registros de este trabajador cronológicamente
         const sortedRecords = [...records].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        
+
         const shifts = [];
         let activeEntrada = null;
         let activeExtra = null;
-        
+
         for (let i = 0; i < sortedRecords.length; i++) {
             const record = sortedRecords[i];
-            
+
             if (record.type === 'entrada') {
                 if (activeEntrada) {
                     // Turno previo sin salida (incompleto)
@@ -558,7 +558,7 @@ class DatabaseManager {
                     const salidaDate = new Date(record.timestamp);
                     const diffMs = salidaDate - entradaDate;
                     const diffHrs = diffMs / (1000 * 60 * 60);
-                    
+
                     if (diffHrs > 20.0) {
                         // Si pasan más de 20 horas, asumimos marcas independientes (olvido de marcar)
                         shifts.push({
@@ -620,8 +620,8 @@ class DatabaseManager {
                 activeExtra = record;
             } else if (record.type === 'extra_fin') {
                 if (activeExtra) {
-                    const extraInDate = new Date(activeExtra.timestamp);
-                    const extraFinDate = new Date(record.timestamp);
+                    const extraInDate = new Date(activeExtra.timestamp.replace(' ', 'T'));
+                    const extraFinDate = new Date(record.timestamp.replace(' ', 'T'));
                     const diffMs = extraFinDate - extraInDate;
                     const diffHrs = diffMs / (1000 * 60 * 60);
                     
@@ -646,13 +646,18 @@ class DatabaseManager {
                             rawRecords: [record]
                         });
                     } else {
+                        // Redondeo por turno: menor a 50 min se trunca, 50 min o más sube a hora completa
+                        const hoursInt = Math.floor(diffHrs);
+                        const minutesFraction = (diffHrs - hoursInt) * 60;
+                        const finalOvertimeHours = minutesFraction >= 50 ? hoursInt + 1 : hoursInt;
+
                         shifts.push({
                             date: activeExtra.date,
                             type: 'extra',
                             entrada: null,
                             salida: null,
                             regularHours: 0,
-                            overtimeHours: parseFloat(diffHrs.toFixed(2)),
+                            overtimeHours: finalOvertimeHours,
                             rawRecords: [activeExtra, record]
                         });
                     }
@@ -671,13 +676,13 @@ class DatabaseManager {
                 }
             }
         }
-        
+
         // Guardar marcas que quedaron abiertas al final del ciclo
         if (activeEntrada) {
             shifts.push({
                 date: activeEntrada.date,
                 type: 'regular',
-                entrada: new Date(activeEntrada.timestamp),
+                entrada: new Date(activeEntrada.timestamp.replace(' ', 'T')),
                 salida: null,
                 regularHours: 0,
                 overtimeHours: 0,
@@ -695,7 +700,7 @@ class DatabaseManager {
                 rawRecords: [activeExtra]
             });
         }
-        
+
         // Agrupar los turnos calculados por su fecha
         const shiftsByDate = {};
         shifts.forEach(shift => {
@@ -708,9 +713,9 @@ class DatabaseManager {
                     rawRecords: []
                 };
             }
-            
+
             const group = shiftsByDate[shift.date];
-            
+
             if (shift.entrada) {
                 if (!group.entrada || shift.entrada < group.entrada) {
                     group.entrada = shift.entrada;
@@ -721,10 +726,10 @@ class DatabaseManager {
                     group.salida = shift.salida;
                 }
             }
-            
+
             group.regularHours += shift.regularHours;
             group.overtimeHours += shift.overtimeHours;
-            
+
             // Evitar duplicar registros en rawRecords
             shift.rawRecords.forEach(r => {
                 if (!group.rawRecords.some(existing => existing.id === r.id)) {
@@ -732,7 +737,7 @@ class DatabaseManager {
                 }
             });
         });
-        
+
         // Filtrar y estructurar el breakdown final para el mes y año solicitado
         const breakdown = [];
         Object.keys(shiftsByDate).forEach(dateStr => {
@@ -743,14 +748,14 @@ class DatabaseManager {
                     date: dateStr,
                     entrada: group.entrada ? this.formatTime(group.entrada) : '--:--',
                     salida: group.salida ? this.formatTime(group.salida) : '--:--',
-                    regularHours: parseFloat(group.regularHours.toFixed(2)),
-                    overtimeHours: parseFloat(group.overtimeHours.toFixed(2)),
-                    totalDaily: parseFloat((group.regularHours + group.overtimeHours).toFixed(2)),
-                    rawRecords: group.rawRecords.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                    regularHours: group.regularHours,
+                    overtimeHours: group.overtimeHours,
+                    totalDaily: group.regularHours + group.overtimeHours,
+                    rawRecords: group.rawRecords.sort((a, b) => new Date(a.timestamp.replace(' ', 'T')) - new Date(b.timestamp.replace(' ', 'T')))
                 });
             }
         });
-        
+
         // Ordenar breakdown por fecha ascendente
         return breakdown.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
@@ -764,7 +769,7 @@ class DatabaseManager {
 
         if (!user) return null;
 
-        // Sumar horas
+        // Sumar horas exactas (floats sin redondear)
         let totalRegularHours = 0;
         let totalExtraShiftHours = 0; // Provienen del QR de Horas Extras directamente
 
@@ -782,33 +787,51 @@ class DatabaseManager {
         let regularOvertimeHours = 0;
 
         if (totalRegularHours >= baseTarget) {
-            // Cumple o supera las 180 horas base
+            // Cumple o supera las 160 horas meta
             baseSalaryEarned = rateBase;
-            // El exceso de la jornada regular se convierte en horas extras
-            regularOvertimeHours = totalRegularHours - baseTarget;
+            // El exceso de la jornada regular se convierte en horas extras (con redondeo a 50 min)
+            const diff = totalRegularHours - baseTarget;
+            const diffInt = Math.floor(diff);
+            const diffMins = (diff - diffInt) * 60;
+            regularOvertimeHours = diffMins >= 50 ? diffInt + 1 : diffInt;
         } else {
-            // Opción A: Pago proporcional si trabaja menos de 180 horas ordinarias
+            // Opción A: Pago proporcional si trabaja menos de 160 horas ordinarias
             baseSalaryEarned = (totalRegularHours / baseTarget) * rateBase;
             baseSalaryEarned = Math.max(0, parseFloat(baseSalaryEarned.toFixed(0)));
             regularOvertimeHours = 0;
         }
 
-        // Sumar horas extras: las regulares que exceden 180 + todas las realizadas vía el QR de Horas Extras
+        // Sumar horas extras: las regulares que exceden 160 + todas las realizadas vía el QR de Horas Extras
         const totalOvertimeHours = regularOvertimeHours + totalExtraShiftHours;
-        const overtimeSalaryEarned = Math.round(totalOvertimeHours * rateExtra);
+        
+        // Redondear a 2 decimales para la visualización del total consolidado (los extras ya son enteros)
+        const totalRegularHoursRounded = parseFloat(totalRegularHours.toFixed(2));
+        const totalExtraShiftHoursRounded = totalExtraShiftHours;
+        const regularOvertimeHoursRounded = regularOvertimeHours;
+        const totalOvertimeHoursRounded = totalOvertimeHours;
+
+        const overtimeSalaryEarned = Math.round(totalOvertimeHoursRounded * rateExtra);
         const totalSalary = Math.round(baseSalaryEarned + overtimeSalaryEarned);
+
+        // Formatear el desglose diario para visualización de 2 decimales limpios
+        const formattedBreakdown = breakdown.map(day => ({
+            ...day,
+            regularHours: parseFloat(day.regularHours.toFixed(2)),
+            overtimeHours: parseFloat(day.overtimeHours.toFixed(2)),
+            totalDaily: parseFloat(day.totalDaily.toFixed(2))
+        }));
 
         return {
             rut: rut,
             name: user.name,
-            totalRegularHours: parseFloat(totalRegularHours.toFixed(2)),
-            totalExtraShiftHours: parseFloat(totalExtraShiftHours.toFixed(2)),
-            regularOvertimeHours: parseFloat(regularOvertimeHours.toFixed(2)),
-            totalOvertimeHours: parseFloat(totalOvertimeHours.toFixed(2)),
+            totalRegularHours: totalRegularHoursRounded,
+            totalExtraShiftHours: totalExtraShiftHoursRounded,
+            regularOvertimeHours: regularOvertimeHoursRounded,
+            totalOvertimeHours: totalOvertimeHoursRounded,
             baseSalaryEarned: baseSalaryEarned,
             overtimeSalaryEarned: overtimeSalaryEarned,
             totalSalary: totalSalary,
-            breakdown: breakdown
+            breakdown: formattedBreakdown
         };
     }
 
@@ -857,7 +880,7 @@ class DatabaseManager {
                         editedAt: null
                     });
                 }
-                continue; 
+                continue;
             }
 
             const dateStr = window.getChileanDateStr(date);
