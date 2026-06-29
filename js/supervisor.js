@@ -13,6 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-form').addEventListener('submit', handleLogin);
     document.getElementById('btn-logout').addEventListener('click', handleLogout);
 
+    // Evento para abrir menú lateral en móviles
+    const toggleBtn = document.getElementById('btn-toggle-sidebar');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => toggleMobileSidebar(true));
+    }
+
     // Navegación entre pestañas
     setupTabs();
 
@@ -110,15 +116,32 @@ function handleLogout() {
 
 function showLogin() {
     document.getElementById('login-section').style.display = 'block';
+    const loginCont = document.getElementById('login-container');
+    if (loginCont) loginCont.style.display = 'flex';
     document.getElementById('dashboard-section').style.display = 'none';
-    document.getElementById('supervisor-header').style.display = 'none';
+    const dashCont = document.getElementById('dashboard-container');
+    if (dashCont) dashCont.style.display = 'none';
+    document.getElementById('main-sidebar').style.display = 'none';
+    document.getElementById('mobile-header').style.display = 'none';
+    document.getElementById('login-header-container').style.display = 'block';
 }
 
 function showDashboard() {
     document.getElementById('login-section').style.display = 'none';
+    const loginCont = document.getElementById('login-container');
+    if (loginCont) loginCont.style.display = 'none';
     document.getElementById('dashboard-section').style.display = 'grid';
-    document.getElementById('supervisor-header').style.display = 'flex';
+    const dashCont = document.getElementById('dashboard-container');
+    if (dashCont) dashCont.style.display = 'block';
+    document.getElementById('main-sidebar').style.display = 'flex';
+    document.getElementById('mobile-header').style.display = 'flex';
+    document.getElementById('login-header-container').style.display = 'none';
     document.getElementById('sup-name-badge').textContent = supervisorUser.name;
+
+    // Establecer iniciales en el avatar
+    const initials = supervisorUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const avatarBadge = document.getElementById('sup-avatar-badge');
+    if (avatarBadge) avatarBadge.textContent = initials;
 
     // Poblar selectores de filtros y campos
     populateSelectFilters();
@@ -127,8 +150,8 @@ function showDashboard() {
     // Ajustar visibilidad inicial de la barra lateral (pestaña por defecto: 'live')
     const sidebar = document.querySelector('.sidebar');
     const grid = document.getElementById('dashboard-section');
-    sidebar.style.display = 'block';
-    grid.classList.remove('full-width');
+    if (sidebar) sidebar.style.display = 'block';
+    if (grid) grid.classList.remove('full-width');
 
     // Cargar información inicial
     updateDashboardData();
@@ -168,6 +191,11 @@ function setupTabs() {
             } else {
                 sidebar.style.display = 'none';
                 grid.classList.add('full-width');
+            }
+
+            // Cerrar menú lateral en móviles al cambiar de pestaña
+            if (window.innerWidth < 992) {
+                toggleMobileSidebar(false);
             }
 
             // Recargar datos si es necesario
@@ -841,5 +869,23 @@ window.handleDeleteHoliday = function (dateStr) {
         } catch (error) {
             showToast(error.message || "Error al eliminar el feriado.", "error");
         }
+    }
+};
+
+// --- CONTROL DE NAVEGACIÓN MÓVIL (SIDEBAR) ---
+
+window.toggleMobileSidebar = function (isOpen) {
+    const sidebar = document.getElementById('main-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar || !backdrop) return;
+
+    if (isOpen) {
+        sidebar.classList.add('active');
+        backdrop.style.display = 'block';
+        setTimeout(() => backdrop.classList.add('active'), 10);
+    } else {
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('active');
+        setTimeout(() => backdrop.style.display = 'none', 300);
     }
 };

@@ -246,6 +246,141 @@ select option {
     color: var(--text-primary);
 }
 
+/* ==========================================
+   SISTEMA DE DISEÑO RESPONSIVO (MOBILE-FIRST & TABLET)
+   ========================================== */
+
+/* Ajustes para tabletas y dispositivos medianos (max-width: 768px) */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem;
+    }
+
+    .app-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .app-header .brand {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .app-header .brand-text {
+        text-align: center;
+    }
+
+    .user-badge {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Tablas responsivas */
+    th, td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    /* Grillas financieras y de resumen */
+    .financial-summary {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+        gap: 0.75rem;
+    }
+
+    .financial-metric-card {
+        padding: 1rem;
+    }
+
+    .financial-metric-card .value {
+        font-size: 1.25rem;
+    }
+
+    /* Hub de Selección de Roles */
+    .hub-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem;
+        padding: 1rem 0;
+    }
+
+    .hub-card {
+        padding: 2rem 1.5rem;
+    }
+
+    /* Formularios de dos columnas */
+    .form-row-2col {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Ajustes finos para celulares y pantallas verticales estrechas (max-width: 480px) */
+@media (max-width: 480px) {
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.25rem !important; }
+    h3 { font-size: 1.1rem !important; }
+
+    .card {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    /* Navegación por pestañas */
+    .tab-nav {
+        gap: 0.25rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .tab-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+
+    /* Modal emergente */
+    .modal {
+        padding: 1.25rem;
+        width: 95%;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+
+    /* Botones y formularios */
+    .btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    input, select {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Ajustes específicos de Punto de Control (QR) */
+    .qr-displays-container {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem;
+    }
+
+    .qr-box {
+        padding: 1.5rem 1rem !important;
+    }
+
+    /* Boleta de liquidación en versión móvil (evita overflows en impresión y vista previa) */
+    #paystub-print-card {
+        padding: 1rem !important;
+        overflow-x: auto;
+    }
+}
+
 input:focus, select:focus {
     outline: none;
     border-color: var(--primary);
@@ -644,6 +779,7 @@ input:focus, select:focus {
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    min-width: 0; /* Previene desbordamiento del grid al contener tablas anchas */
 }
 
 .tab-nav {
@@ -1004,5 +1140,258 @@ tr:hover td {
     
     #paystub-print-card h4, #paystub-print-card h5, #paystub-print-card strong {
         color: black !important;
+    }
+}
+
+/* ==========================================
+   DISEÑO DE DASHBOARD COMPLETO CON SIDEBAR NAVEGACIÓN
+   ========================================== */
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 100vh;
+}
+
+.main-sidebar {
+    width: 280px;
+    background: rgba(11, 15, 25, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--border-glass);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-brand {
+    margin-bottom: 2.5rem;
+}
+
+.sidebar-brand .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sidebar-brand .brand-logo {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 1.35rem;
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.sidebar-brand .brand-text h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #FFFFFF, var(--text-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+.sidebar-brand .brand-text span {
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    display: block;
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    padding: 1rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.sidebar-user .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--border-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 0.95rem;
+    border: 1.5px solid var(--accent);
+}
+
+.sidebar-user .info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.sidebar-user .info .name {
+    font-weight: 600;
+    color: white;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.sidebar-user .info .role {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.sidebar-user .info .role::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-entrada);
+    margin-right: 6px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.sidebar-nav .tab-btn {
+    text-align: left;
+    width: 100%;
+    padding: 0.85rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sidebar-nav .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
+}
+
+.sidebar-nav .tab-btn.active {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(6, 182, 212, 0.05));
+    border: 1px solid rgba(6, 182, 212, 0.25);
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.05);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-glass);
+}
+
+/* Cabecera Móvil */
+.mobile-header {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.5rem;
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-glass);
+    position: sticky;
+    top: 0;
+    z-index: 998;
+}
+
+.hamburger-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.75rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.sidebar-backdrop.active {
+    opacity: 1;
+}
+
+/* Ocultar/Mostrar contenedor de cabecera de login */
+#login-header-container {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* Media Query para responsividad del Sidebar */
+@media (max-width: 992px) {
+    .main-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        box-shadow: 20px 0 50px rgba(0,0,0,0.8);
+        z-index: 1000;
+        display: none !important; /* Controlado dinámicamente por el script */
+    }
+    
+    .main-sidebar.active {
+        transform: translateX(0);
+        display: flex !important;
+    }
+    
+    .mobile-header {
+        display: flex;
+    }
+    
+    .app-layout {
+        flex-direction: column;
     }
 }
