@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Supervisión - QRAssist</title>
     <link rel="stylesheet" href="css/styles.css?v=1.3">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Cabecera -->
@@ -22,7 +24,8 @@
                     <span class="role">Supervisor:</span>
                     <span id="sup-name-badge">Cargando...</span>
                 </div>
-                <button id="btn-logout" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Cerrar Sesión</button>
+                <button id="btn-logout" class="btn btn-secondary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Cerrar Sesión</button>
             </div>
         </header>
 
@@ -31,8 +34,9 @@
             <section id="login-section" class="card login-card" style="margin: 4rem auto 0 auto;">
                 <h2>Acceso Supervisor</h2>
                 <p>Credenciales de control administrativo</p>
-                
-                <div id="login-error" style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--color-salida); color: #FCA5A5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center;">
+
+                <div id="login-error"
+                    style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--color-salida); color: #FCA5A5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center;">
                     RUT o contraseña incorrectos.
                 </div>
 
@@ -42,14 +46,16 @@
                         <input type="text" id="rut-input" placeholder="99.999.999-9" required autocomplete="username">
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Prueba: 99.999.999-9</span>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="password-input">Contraseña</label>
-                        <input type="password" id="password-input" placeholder="••••" required autocomplete="current-password">
+                        <input type="password" id="password-input" placeholder="••••" required
+                            autocomplete="current-password">
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Clave prueba: admin</span>
                     </div>
 
-                    <button type="submit" id="btn-submit-login" class="btn" style="width: 100%; margin-top: 1rem;">Ingresar al Panel</button>
+                    <button type="submit" id="btn-submit-login" class="btn"
+                        style="width: 100%; margin-top: 1rem;">Ingresar al Panel</button>
                 </form>
             </section>
 
@@ -63,14 +69,16 @@
                         <button class="tab-btn" data-tab="history">📝 Historial y Ajustes</button>
                         <button class="tab-btn" data-tab="payroll">💰 Módulo Financiero</button>
                         <button class="tab-btn" data-tab="workers">👥 Trabajadores</button>
+                        <button class="tab-btn" data-tab="holidays">📅 Feriados</button>
                     </nav>
 
                     <!-- CONTENIDO PESTAÑA: MONITOREO EN VIVO -->
                     <div id="tab-live" class="tab-content active">
                         <div class="card">
                             <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Marcas Recientes de la Jornada</h3>
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Muestra los escaneos realizados hoy por los trabajadores en tiempo real.</p>
-                            
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Muestra los
+                                escaneos realizados hoy por los trabajadores en tiempo real.</p>
+
                             <div class="table-wrapper">
                                 <table>
                                     <thead>
@@ -96,13 +104,16 @@
                             <div class="flex justify-between align-center mb-4">
                                 <div>
                                     <h3 style="font-size: 1.25rem;">Registro Histórico de Asistencia</h3>
-                                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Consulta y edita marcas de asistencia de todos los períodos.</p>
+                                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Consulta y edita marcas
+                                        de asistencia de todos los períodos.</p>
                                 </div>
-                                <button id="btn-add-record-modal" class="btn btn-success">➕ Crear Registro Manual</button>
+                                <button id="btn-add-record-modal" class="btn btn-success">➕ Crear Registro
+                                    Manual</button>
                             </div>
 
                             <!-- Filtros de búsqueda -->
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-glass);">
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-glass);">
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label for="filter-worker">Trabajador</label>
                                     <select id="filter-worker">
@@ -141,10 +152,12 @@
                     <div id="tab-payroll" class="tab-content">
                         <div class="card">
                             <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Cálculo Mensual de Remuneraciones</h3>
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Cálculo automático de sueldo base proporcional y horas extras al $4.500.</p>
-                            
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Cálculo
+                                automático de sueldo base proporcional y horas extras al $4.500.</p>
+
                             <!-- Selector de período y trabajador -->
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-glass);">
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-glass);">
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label for="payroll-worker">Trabajador</label>
                                     <select id="payroll-worker">
@@ -158,7 +171,8 @@
                                     </select>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 0; justify-content: flex-end;">
-                                    <button id="btn-calculate-payroll" class="btn" style="width: 100%;">📊 Calcular Nómina</button>
+                                    <button id="btn-calculate-payroll" class="btn" style="width: 100%;">📊 Calcular
+                                        Nómina</button>
                                 </div>
                             </div>
 
@@ -172,12 +186,19 @@
                                     </div>
                                     <div class="financial-metric-card">
                                         <span class="label">Horas Extras</span>
-                                        <span class="value" id="res-hours-extra" style="color: var(--color-extra);">0.0h</span>
-                                        <span style="font-size: 0.7rem; color: var(--text-muted);">$4.500 por hora</span>
+                                        <span class="value" id="res-hours-extra"
+                                            style="color: var(--color-extra);">0.0h</span>
+                                        <span style="font-size: 0.7rem; color: var(--text-muted);">$4.500 por
+                                            hora</span>
                                     </div>
                                     <div class="financial-metric-card">
                                         <span class="label">Sueldo Base Percibido</span>
                                         <span class="value" id="res-salary-base">$0</span>
+                                    </div>
+                                    <div class="financial-metric-card" id="res-holiday-card" style="display: none; border-color: rgba(6, 182, 212, 0.25);">
+                                        <span class="label" style="color: var(--accent);">Recargo Feriados (1.5x)</span>
+                                        <span class="value" id="res-salary-holiday" style="color: var(--accent);">$0</span>
+                                        <span style="font-size: 0.7rem; color: var(--text-muted);" id="res-hours-holiday">0.0h trabajadas</span>
                                     </div>
                                     <div class="financial-metric-card highlight">
                                         <span class="label">Sueldo Líquido Total</span>
@@ -187,26 +208,38 @@
                                 </div>
 
                                 <!-- Detalle del cálculo / Boleta de liquidación para impresión -->
-                                <div id="paystub-print-card" class="card" style="background: rgba(255,255,255,0.01); border-color: var(--border-glass); margin-bottom: 1.5rem;">
-                                    <div style="border-bottom: 1.5px dashed var(--border-glass); padding-bottom: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                                <div id="paystub-print-card" class="card"
+                                    style="background: rgba(255,255,255,0.01); border-color: var(--border-glass); margin-bottom: 1.5rem;">
+                                    <div
+                                        style="border-bottom: 1.5px dashed var(--border-glass); padding-bottom: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
                                         <div>
-                                            <h4 style="font-size: 1.1rem; font-weight: 800; color: white;">LIQUIDACIÓN DE SUELDO</h4>
-                                            <p style="font-size: 0.75rem; color: var(--accent);" id="stub-period">PERÍODO: --/--</p>
+                                            <h4 style="font-size: 1.1rem; font-weight: 800; color: white;">LIQUIDACIÓN
+                                                DE SUELDO</h4>
+                                            <p style="font-size: 0.75rem; color: var(--accent);" id="stub-period">
+                                                PERÍODO: --/--</p>
                                         </div>
                                         <div style="text-align: right;">
-                                            <h5 style="font-size: 0.95rem; color: var(--text-primary);">QRAssist Ltda.</h5>
-                                            <span style="font-size: 0.7rem; color: var(--text-muted);">RUT: 76.543.210-K</span>
+                                            <h5 style="font-size: 0.95rem; color: var(--text-primary);">QRAssist Ltda.
+                                            </h5>
+                                            <span style="font-size: 0.7rem; color: var(--text-muted);">RUT:
+                                                76.543.210-K</span>
                                         </div>
                                     </div>
-                                    
-                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; font-size: 0.85rem; margin-bottom: 1.5rem;">
+
+                                    <div
+                                        style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; font-size: 0.85rem; margin-bottom: 1.5rem;">
                                         <div>
-                                            <span style="color: var(--text-secondary); display:block; font-size:0.75rem;">TRABAJADOR:</span>
-                                            <strong id="stub-worker-name" style="color: white; font-size:0.95rem;">--</strong>
+                                            <span
+                                                style="color: var(--text-secondary); display:block; font-size:0.75rem;">TRABAJADOR:</span>
+                                            <strong id="stub-worker-name"
+                                                style="color: white; font-size:0.95rem;">--</strong>
                                         </div>
                                         <div>
-                                            <span style="color: var(--text-secondary); display:block; font-size:0.75rem;">RUT TRABAJADOR:</span>
-                                            <strong id="stub-worker-rut" style="color: white; font-size:0.95rem;">--</strong>
+                                            <span
+                                                style="color: var(--text-secondary); display:block; font-size:0.75rem;">RUT
+                                                TRABAJADOR:</span>
+                                            <strong id="stub-worker-rut"
+                                                style="color: white; font-size:0.95rem;">--</strong>
                                         </div>
                                     </div>
 
@@ -214,48 +247,126 @@
                                         <thead>
                                             <tr>
                                                 <th style="padding: 0.5rem 0.75rem;">Concepto de Liquidación</th>
-                                                <th style="text-align: right; padding: 0.5rem 0.75rem;">Detalle / Horas</th>
-                                                <th style="text-align: right; padding: 0.5rem 0.75rem;">Monto Pesos ($)</th>
+                                                <th style="text-align: right; padding: 0.5rem 0.75rem;">Detalle / Horas
+                                                </th>
+                                                <th style="text-align: right; padding: 0.5rem 0.75rem;">Monto Pesos ($)
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
                                                 <td style="padding: 0.6rem 0.75rem;">Sueldo Base Mensual (160 hrs)</td>
-                                                <td style="text-align: right; padding: 0.6rem 0.75rem;">Monto Referencial</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem;">Monto
+                                                    Referencial</td>
                                                 <td style="text-align: right; padding: 0.6rem 0.75rem;">$600.000</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 0.6rem 0.75rem; color: var(--color-entrada);">Sueldo Base Percibido Proporcional</td>
-                                                <td style="text-align: right; padding: 0.6rem 0.75rem;" id="stub-hours-regular">0.0 / 180.0 hrs</td>
-                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600;" id="stub-salary-base">$0</td>
+                                                <td style="padding: 0.6rem 0.75rem; color: var(--color-entrada);">Sueldo
+                                                    Base Percibido Proporcional</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem;"
+                                                    id="stub-hours-regular">0.0 / 180.0 hrs</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600;"
+                                                    id="stub-salary-base">$0</td>
                                             </tr>
 
-                                            <tr style="border-bottom: 1.5px solid var(--border-glass);">
-                                                <td style="padding: 0.6rem 0.75rem; color: var(--color-extra);">Total Pago Horas Extras ($4.500 c/u)</td>
-                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600;" id="stub-hours-overtime-total">0.0 hrs</td>
-                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600;" id="stub-salary-overtime">$0</td>
+                                            <tr id="stub-overtime-row" style="border-bottom: 1.5px solid var(--border-glass);">
+                                                <td style="padding: 0.6rem 0.75rem; color: var(--color-extra);">Total
+                                                    Pago Horas Extras ($4.500 c/u)</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600;"
+                                                    id="stub-hours-overtime-total">0.0 hrs</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600;"
+                                                    id="stub-salary-overtime">$0</td>
+                                            </tr>
+                                            <tr id="stub-holiday-row-regular" style="display: none;">
+                                                <td style="padding: 0.6rem 0.75rem; color: var(--accent);">Recargo Feriado Ordinario (+50%)</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem;" id="stub-holiday-hours-regular">0.0 hrs</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600; color: var(--accent);" id="stub-holiday-surcharge-regular">$0</td>
+                                            </tr>
+                                            <tr id="stub-holiday-row-extra" style="display: none; border-bottom: 1.5px solid var(--border-glass);">
+                                                <td style="padding: 0.6rem 0.75rem; color: var(--accent);">Recargo Feriado Extra (+50%)</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem;" id="stub-holiday-hours-extra">0.0 hrs</td>
+                                                <td style="text-align: right; padding: 0.6rem 0.75rem; font-weight: 600; color: var(--accent);" id="stub-holiday-surcharge-extra">$0</td>
                                             </tr>
                                             <tr style="font-size: 0.95rem;">
-                                                <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--accent);">LIQUIDO A PAGAR (AL BOLSILLO)</td>
+                                                <td
+                                                    style="padding: 1rem 0.75rem; font-weight: 700; color: var(--accent);">
+                                                    LIQUIDO A PAGAR (AL BOLSILLO)</td>
                                                 <td style="text-align: right; padding: 1rem 0.75rem;"></td>
-                                                <td style="text-align: right; padding: 1rem 0.75rem; font-weight: 800; color: var(--accent); font-size: 1.1rem;" id="stub-salary-total">$0</td>
+                                                <td style="text-align: right; padding: 1rem 0.75rem; font-weight: 800; color: var(--accent); font-size: 1.1rem;"
+                                                    id="stub-salary-total">$0</td>
                                             </tr>
                                         </tbody>
                                     </table>
 
-                                    <div style="display: flex; justify-content: space-between; margin-top: 3rem; font-size: 0.75rem; color: var(--text-muted); text-align: center;">
-                                        <div style="width: 200px; border-top: 1px solid var(--border-glass); padding-top: 0.5rem; margin-top: 1rem;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; margin-top: 3rem; font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                                        <div
+                                            style="width: 200px; border-top: 1px solid var(--border-glass); padding-top: 0.5rem; margin-top: 1rem;">
                                             Firma Supervisor
                                         </div>
-                                        <div style="width: 200px; border-top: 1px solid var(--border-glass); padding-top: 0.5rem; margin-top: 1rem;">
+                                        <div
+                                            style="width: 200px; border-top: 1px solid var(--border-glass); padding-top: 0.5rem; margin-top: 1rem;">
                                             Firma Trabajador
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="flex justify-between">
-                                    <button id="btn-print-paystub" class="btn btn-secondary">🖨️ Imprimir Liquidación</button>
-                                    <p style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">Validez legal sujeta a firma electrónica.</p>
+                                    <button id="btn-print-paystub" class="btn btn-secondary">🖨️ Imprimir
+                                        Liquidación</button>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">Validez
+                                        legal sujeta a firma electrónica.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO PESTAÑA: FERIADOS -->
+                    <div id="tab-holidays" class="tab-content">
+                        <div class="card">
+                            <div class="flex justify-between align-center mb-4">
+                                <div>
+                                    <h3 style="font-size: 1.25rem;">Gestión de Feriados</h3>
+                                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Registra los días festivos para aplicar automáticamente el recargo de 1.5x en el cálculo de sueldos.</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                                <!-- Formulario Agregar -->
+                                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); padding: 1.5rem; border-radius: 16px;">
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; color: white;">💾 Registrar Nuevo Feriado</h4>
+                                    <form id="holiday-form">
+                                        <div class="form-group">
+                                            <label for="holiday-date">Fecha del Feriado</label>
+                                            <input type="date" id="holiday-date" required style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); color: white;">
+                                        </div>
+                                        <div class="form-group" style="margin-top: 1rem;">
+                                            <label for="holiday-name">Descripción / Nombre</label>
+                                            <input type="text" id="holiday-name" placeholder="Ej: Año Nuevo, Fiestas Patrias" required style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); color: white;">
+                                        </div>
+                                        <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 1.5rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                                            ➕ Agregar Feriado
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Tabla Listado -->
+                                <div>
+                                    <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; color: white;">📋 Listado de Feriados Configurados</h4>
+                                    <div class="table-wrapper" style="margin-top: 0;">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Fecha</th>
+                                                    <th>Nombre Feriado</th>
+                                                    <th style="text-align: right;">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="holidays-table-body">
+                                                <!-- Se llena dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -267,7 +378,8 @@
                             <div class="flex justify-between align-center mb-4">
                                 <div>
                                     <h3 style="font-size: 1.25rem;">Gestión de Trabajadores</h3>
-                                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Registra y administra las cuentas de los trabajadores.</p>
+                                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Registra y administra
+                                        las cuentas de los trabajadores.</p>
                                 </div>
                                 <button id="btn-add-worker-modal" class="btn btn-success">➕ Agregar Trabajador</button>
                             </div>
@@ -296,7 +408,9 @@
                 <!-- Columna Derecha: Estado del Personal hoy (Barra Lateral) -->
                 <aside class="sidebar">
                     <div class="card" style="padding: 1.5rem;">
-                        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem;">Estado de la Planta Hoy</h3>
+                        <h3
+                            style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem;">
+                            Estado de la Planta Hoy</h3>
                         <div class="worker-status-list" id="worker-status-sidebar">
                             <!-- Se llena dinámicamente con el estado de Juan y María -->
                         </div>
@@ -314,7 +428,7 @@
             </div>
             <form id="attendance-form" onsubmit="event.preventDefault();">
                 <input type="hidden" id="edit-record-id">
-                
+
                 <div class="form-group">
                     <label for="modal-worker-select">Trabajador</label>
                     <select id="modal-worker-select" required>
@@ -408,4 +522,5 @@
     <script src="js/database.js"></script>
     <script src="js/supervisor.js"></script>
 </body>
+
 </html>

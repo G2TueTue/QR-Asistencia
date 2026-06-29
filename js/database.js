@@ -13,6 +13,7 @@ const USE_FIREBASE = true;
 class DatabaseManager {
     constructor() {
         this.initLocalStorage();
+        this.initHolidays();
         this.setupTabSynchronization();
         if (USE_FIREBASE && window.IsFirebaseConfigured) {
             this.initFirebaseSync();
@@ -118,6 +119,29 @@ class DatabaseManager {
         }, (error) => {
             console.error("Error sincronizando asistencias de Firebase:", error);
         });
+
+        // 3. Escuchar la colección 'feriados' en tiempo real
+        db.collection('feriados').onSnapshot((snapshot) => {
+            const holidays = [];
+            snapshot.forEach((doc) => {
+                holidays.push({
+                    date: doc.id,
+                    name: doc.data().nombre || doc.data().name || ''
+                });
+            });
+
+            if (holidays.length > 0) {
+                localStorage.setItem('qr_asistencia_feriados', JSON.stringify(holidays));
+                console.log("Feriados sincronizados desde Firebase:", holidays.length);
+                if (this.onHolidaysChangeCallback) {
+                    this.onHolidaysChangeCallback(holidays);
+                }
+            } else {
+                this.uploadDefaultHolidays();
+            }
+        }, (error) => {
+            console.error("Error sincronizando feriados de Firebase:", error);
+        });
     }
 
     mapUserFromFirestore(doc) {
@@ -208,6 +232,9 @@ class DatabaseManager {
         window.addEventListener('storage', (event) => {
             if (event.key === 'qr_asistencia_records' && this.onRecordsChangeCallback) {
                 this.onRecordsChangeCallback(this.getAllRecords());
+            }
+            if (event.key === 'qr_asistencia_feriados' && this.onHolidaysChangeCallback) {
+                this.onHolidaysChangeCallback(this.getHolidays());
             }
         });
     }
@@ -345,6 +372,130 @@ class DatabaseManager {
 
     logout() {
         localStorage.removeItem('qr_asistencia_current_user');
+    }
+
+    // --- MÉTODOS DE FERIADOS ---
+
+    initHolidays() {
+        const defaultHolidays = [
+            { date: "2026-01-01", name: "Año Nuevo" },
+            { date: "2026-04-03", name: "Viernes Santo" },
+            { date: "2026-04-04", name: "Sábado Santo" },
+            { date: "2026-05-01", name: "Día del Trabajo" },
+            { date: "2026-05-21", name: "Día de las Glorias Navales" },
+            { date: "2026-06-29", name: "San Pedro y San Pablo" },
+            { date: "2026-07-16", name: "Día de la Virgen del Carmen" },
+            { date: "2026-08-15", name: "Asunción de la Virgen" },
+            { date: "2026-09-18", name: "Independencia Nacional" },
+            { date: "2026-09-19", name: "Glorias del Ejército" },
+            { date: "2026-10-12", name: "Encuentro de Dos Mundos" },
+            { date: "2026-10-31", name: "Día de las Iglesias Evangélicas" },
+            { date: "2026-11-01", name: "Día de Todos los Santos" },
+            { date: "2026-12-08", name: "Inmaculada Concepción" },
+            { date: "2026-12-25", name: "Navidad" }
+        ];
+
+        const existingHolidays = localStorage.getItem('qr_asistencia_feriados');
+        if (!existingHolidays) {
+            localStorage.setItem('qr_asistencia_feriados', JSON.stringify(defaultHolidays));
+        }
+    }
+
+    getHolidays() {
+        const holidays = JSON.parse(localStorage.getItem('qr_asistencia_feriados')) || [];
+        return holidays.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    isHoliday(dateStr) {
+        const holidays = this.getHolidays();
+        return holidays.some(h => h.date === dateStr);
+    }
+
+    getHolidayName(dateStr) {
+        const holidays = this.getHolidays();
+        const found = holidays.find(h => h.date === dateStr);
+        return found ? found.name : '';
+    }
+
+    addHoliday(dateStr, name) {
+        const holidays = this.getHolidays();
+        if (holidays.some(h => h.date === dateStr)) {
+            throw new Error("Ya existe un feriado en esa fecha.");
+        }
+
+        const newHoliday = { date: dateStr, name: name };
+        holidays.push(newHoliday);
+        localStorage.setItem('qr_asistencia_feriados', JSON.stringify(holidays));
+
+        // Sincronizar en Firebase si está activo
+        if (USE_FIREBASE && window.FirebaseDB) {
+            window.FirebaseDB.collection('feriados').doc(dateStr).set({ nombre: name })
+                .then(() => console.log("Feriado guardado en Firebase:", dateStr))
+                .catch(err => console.error("Error al guardar feriado en Firebase:", err));
+        }
+
+        if (this.onHolidaysChangeCallback) {
+            this.onHolidaysChangeCallback(holidays);
+        }
+
+        return newHoliday;
+    }
+
+    deleteHoliday(dateStr) {
+        let holidays = this.getHolidays();
+        if (!holidays.some(h => h.date === dateStr)) {
+            throw new Error("El feriado no existe.");
+        }
+
+        holidays = holidays.filter(h => h.date !== dateStr);
+        localStorage.setItem('qr_asistencia_feriados', JSON.stringify(holidays));
+
+        // Borrar en Firebase si está activo
+        if (USE_FIREBASE && window.FirebaseDB) {
+            window.FirebaseDB.collection('feriados').doc(dateStr).delete()
+                .then(() => console.log("Feriado eliminado de Firebase:", dateStr))
+                .catch(err => console.error("Error al eliminar feriado en Firebase:", err));
+        }
+
+        if (this.onHolidaysChangeCallback) {
+            this.onHolidaysChangeCallback(holidays);
+        }
+    }
+
+    async uploadDefaultHolidays() {
+        const db = window.FirebaseDB;
+        if (!db) return;
+
+        const defaultHolidays = [
+            { date: "2026-01-01", name: "Año Nuevo" },
+            { date: "2026-04-03", name: "Viernes Santo" },
+            { date: "2026-04-04", name: "Sábado Santo" },
+            { date: "2026-05-01", name: "Día del Trabajo" },
+            { date: "2026-05-21", name: "Día de las Glorias Navales" },
+            { date: "2026-06-29", name: "San Pedro y San Pablo" },
+            { date: "2026-07-16", name: "Día de la Virgen del Carmen" },
+            { date: "2026-08-15", name: "Asunción de la Virgen" },
+            { date: "2026-09-18", name: "Independencia Nacional" },
+            { date: "2026-09-19", name: "Glorias del Ejército" },
+            { date: "2026-10-12", name: "Encuentro de Dos Mundos" },
+            { date: "2026-10-31", name: "Día de las Iglesias Evangélicas" },
+            { date: "2026-11-01", name: "Día de Todos los Santos" },
+            { date: "2026-12-08", name: "Inmaculada Concepción" },
+            { date: "2026-12-25", name: "Navidad" }
+        ];
+
+        console.log("Subiendo feriados por defecto a Firebase...");
+        const batch = db.batch();
+        defaultHolidays.forEach(h => {
+            const docRef = db.collection('feriados').doc(h.date);
+            batch.set(docRef, { nombre: h.name });
+        });
+        await batch.commit();
+        console.log("Feriados por defecto subidos exitosamente.");
+    }
+
+    onHolidaysChange(callback) {
+        this.onHolidaysChangeCallback = callback;
     }
 
     // --- MÉTODOS DE ASISTENCIA ---
@@ -751,6 +902,8 @@ class DatabaseManager {
                     regularHours: group.regularHours,
                     overtimeHours: group.overtimeHours,
                     totalDaily: group.regularHours + group.overtimeHours,
+                    isHoliday: this.isHoliday(dateStr),
+                    holidayName: this.getHolidayName(dateStr),
                     rawRecords: group.rawRecords.sort((a, b) => new Date(a.timestamp.replace(' ', 'T')) - new Date(b.timestamp.replace(' ', 'T')))
                 });
             }
@@ -772,10 +925,16 @@ class DatabaseManager {
         // Sumar horas exactas (floats sin redondear)
         let totalRegularHours = 0;
         let totalExtraShiftHours = 0; // Provienen del QR de Horas Extras directamente
+        let holidayRegularHours = 0;
+        let holidayExtraShiftHours = 0;
 
         breakdown.forEach(day => {
             totalRegularHours += day.regularHours;
             totalExtraShiftHours += day.overtimeHours;
+            if (day.isHoliday) {
+                holidayRegularHours += day.regularHours;
+                holidayExtraShiftHours += day.overtimeHours;
+            }
         });
 
         // Fórmulas de Negocio
@@ -810,8 +969,14 @@ class DatabaseManager {
         const regularOvertimeHoursRounded = regularOvertimeHours;
         const totalOvertimeHoursRounded = totalOvertimeHours;
 
+        // Surcharges (recargos) for holidays (+50% to make it 1.5x)
+        const rateRegularHour = rateBase / baseTarget; // 3750
+        const holidayRegularSurcharge = Math.round(holidayRegularHours * rateRegularHour * 0.5);
+        const holidayExtraSurcharge = Math.round(holidayExtraShiftHours * rateExtra * 0.5);
+        const totalHolidaySurcharge = holidayRegularSurcharge + holidayExtraSurcharge;
+
         const overtimeSalaryEarned = Math.round(totalOvertimeHoursRounded * rateExtra);
-        const totalSalary = Math.round(baseSalaryEarned + overtimeSalaryEarned);
+        const totalSalary = Math.round(baseSalaryEarned + overtimeSalaryEarned + totalHolidaySurcharge);
 
         // Formatear el desglose diario para visualización de 2 decimales limpios
         const formattedBreakdown = breakdown.map(day => ({
@@ -828,6 +993,11 @@ class DatabaseManager {
             totalExtraShiftHours: totalExtraShiftHoursRounded,
             regularOvertimeHours: regularOvertimeHoursRounded,
             totalOvertimeHours: totalOvertimeHoursRounded,
+            holidayRegularHours: parseFloat(holidayRegularHours.toFixed(2)),
+            holidayExtraHours: parseFloat(holidayExtraShiftHours.toFixed(2)),
+            holidayRegularSurcharge: holidayRegularSurcharge,
+            holidayExtraSurcharge: holidayExtraSurcharge,
+            totalHolidaySurcharge: totalHolidaySurcharge,
             baseSalaryEarned: baseSalaryEarned,
             overtimeSalaryEarned: overtimeSalaryEarned,
             totalSalary: totalSalary,

@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-cancel-worker-modal').addEventListener('click', closeWorkerModal);
     document.getElementById('worker-form').addEventListener('submit', handleSaveWorker);
 
+    // Eventos del Módulo de Feriados
+    document.getElementById('holiday-form').addEventListener('submit', handleSaveHoliday);
+
     // Monitorear cambios en la base de datos en tiempo real (Tesis Feature)
     window.AppDB.onRecordsChange(() => {
         if (supervisorUser) {
@@ -48,6 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
             populateSelectFilters();
             loadWorkersList();
             loadWorkerStatusSidebar();
+        }
+    });
+
+    window.AppDB.onHolidaysChange(() => {
+        if (supervisorUser) {
+            loadHolidaysList();
         }
     });
 
@@ -130,6 +139,7 @@ function updateDashboardData() {
     loadHistoryRecords();
     loadWorkerStatusSidebar();
     loadWorkersList();
+    loadHolidaysList();
 }
 
 // --- NAVEGACIÓN POR PESTAÑAS ---
@@ -474,6 +484,51 @@ function handleCalculatePayroll() {
     document.getElementById('stub-hours-overtime-total').textContent = `${payroll.totalOvertimeHours.toFixed(1)} hrs`;
     document.getElementById('stub-salary-overtime').textContent = formatCurrency(payroll.overtimeSalaryEarned);
 
+    // Recargos por feriados (lógica dinámica y visual)
+    const hasRegularHoliday = payroll.holidayRegularHours > 0;
+    const hasExtraHoliday = payroll.holidayExtraHours > 0;
+
+    const overtimeRow = document.getElementById('stub-overtime-row');
+    const holidayRowReg = document.getElementById('stub-holiday-row-regular');
+    const holidayRowExt = document.getElementById('stub-holiday-row-extra');
+
+    if (hasRegularHoliday || hasExtraHoliday) {
+        overtimeRow.style.borderBottom = 'none';
+        
+        if (hasRegularHoliday) {
+            holidayRowReg.style.display = 'table-row';
+            document.getElementById('stub-holiday-hours-regular').textContent = `${payroll.holidayRegularHours.toFixed(1)} hrs`;
+            document.getElementById('stub-holiday-surcharge-regular').textContent = formatCurrency(payroll.holidayRegularSurcharge);
+            
+            if (!hasExtraHoliday) {
+                holidayRowReg.style.borderBottom = '1.5px solid var(--border-glass)';
+            } else {
+                holidayRowReg.style.borderBottom = 'none';
+            }
+        } else {
+            holidayRowReg.style.display = 'none';
+        }
+        
+        if (hasExtraHoliday) {
+            holidayRowExt.style.display = 'table-row';
+            document.getElementById('stub-holiday-hours-extra').textContent = `${payroll.holidayExtraHours.toFixed(1)} hrs`;
+            document.getElementById('stub-holiday-surcharge-extra').textContent = formatCurrency(payroll.holidayExtraSurcharge);
+            holidayRowExt.style.borderBottom = '1.5px solid var(--border-glass)';
+        } else {
+            holidayRowExt.style.display = 'none';
+        }
+        
+        // Mostrar tarjeta de métrica de feriado
+        document.getElementById('res-holiday-card').style.display = 'flex';
+        document.getElementById('res-salary-holiday').textContent = formatCurrency(payroll.totalHolidaySurcharge);
+        document.getElementById('res-hours-holiday').textContent = `${(payroll.holidayRegularHours + payroll.holidayExtraHours).toFixed(1)}h trabajadas`;
+    } else {
+        overtimeRow.style.borderBottom = '1.5px solid var(--border-glass)';
+        holidayRowReg.style.display = 'none';
+        holidayRowExt.style.display = 'none';
+        document.getElementById('res-holiday-card').style.display = 'none';
+    }
+
     document.getElementById('stub-salary-total').textContent = formatCurrency(payroll.totalSalary);
 
     showToast(`Remuneración calculada para ${payroll.name}.`, "success");
@@ -716,3 +771,75 @@ function setupRutFormatting(inputId) {
         inputElement.setSelectionRange(start + diff, start + diff);
     });
 }
+
+// --- MÓDULO DE GESTIÓN DE FERIADOS ---
+
+function handleSaveHoliday(e) {
+    e.preventDefault();
+    const dateStr = document.getElementById('holiday-date').value;
+    const name = document.getElementById('holiday-name').value.trim();
+
+    if (!dateStr || !name) {
+        showToast("Por favor, complete todos los campos.", "error");
+        return;
+    }
+
+    try {
+        window.AppDB.addHoliday(dateStr, name);
+        showToast("Feriado registrado correctamente.", "success");
+        document.getElementById('holiday-form').reset();
+        loadHolidaysList();
+    } catch (error) {
+        showToast(error.message || "Error al guardar el feriado.", "error");
+    }
+}
+
+function loadHolidaysList() {
+    const tbody = document.getElementById('holidays-table-body');
+    if (!tbody) return;
+
+    const holidays = window.AppDB.getHolidays();
+    tbody.innerHTML = "";
+
+    if (holidays.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center" style="color: var(--text-muted); font-style: italic; padding: 1.5rem;">
+                    No hay feriados registrados.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    holidays.forEach(h => {
+        const dateObj = new Date(h.date + 'T00:00:00');
+        const formattedDate = dateObj.toLocaleDateString('es-CL', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight: 600; font-feature-settings: 'tnum';">${formattedDate}</td>
+            <td>${h.name}</td>
+            <td style="text-align: right;">
+                <button class="btn btn-danger" onclick="handleDeleteHoliday('${h.date}')" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">🗑️ Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.handleDeleteHoliday = function (dateStr) {
+    if (confirm("¿Estás seguro de que deseas eliminar este feriado? Esto afectará los cálculos de liquidación actuales.")) {
+        try {
+            window.AppDB.deleteHoliday(dateStr);
+            showToast("El feriado ha sido eliminado.", "error");
+            loadHolidaysList();
+        } catch (error) {
+            showToast(error.message || "Error al eliminar el feriado.", "error");
+        }
+    }
+};

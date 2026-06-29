@@ -241,6 +241,11 @@ input, select {
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
+select option {
+    background-color: #111827; /* Evita letras blancas sobre fondo blanco en navegadores como Brave/Chrome */
+    color: var(--text-primary);
+}
+
 input:focus, select:focus {
     outline: none;
     border-color: var(--primary);
