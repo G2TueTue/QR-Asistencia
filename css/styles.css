@@ -56,7 +56,7 @@ body {
 
 /* --- contenedor principal --- */
 .app-container {
-    max-width: 1200px;
+    max-width: 1500px;
     width: 100%;
     margin: 0 auto;
     padding: 1.5rem;
@@ -246,10 +246,6 @@ select option {
     color: var(--text-primary);
 }
 
-/* ==========================================
-   SISTEMA DE DISEÑO RESPONSIVO (MOBILE-FIRST & TABLET)
-   ========================================== */
-
 /* Ajustes para tabletas y dispositivos medianos (max-width: 768px) */
 @media (max-width: 768px) {
     .app-container {
@@ -280,8 +276,18 @@ select option {
 
     /* Tablas responsivas */
     th, td {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.8rem;
+        padding: 0.65rem 0.4rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Habilitar swipe táctil sin barra de scroll física visible */
+    .table-wrapper {
+        scrollbar-width: none; /* Firefox */
+        overflow-x: auto;
+    }
+    
+    .table-wrapper::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
     }
 
     /* Grillas financieras y de resumen */
@@ -1075,8 +1081,10 @@ tr:hover td {
     }
     
     /* Ocultar quirúrgicamente todos los elementos hermanos que no sean ancestros de la boleta */
-    body > *:not(.app-container),
-    .app-container > *:not(main),
+    body > *:not(.app-layout),
+    .app-layout > *:not(.content-wrapper),
+    .content-wrapper > *:not(#dashboard-container),
+    #dashboard-container > *:not(main),
     main > *:not(#dashboard-section),
     #dashboard-section > *:not(.main-dashboard),
     .main-dashboard > *:not(#tab-payroll),
@@ -1090,7 +1098,7 @@ tr:hover td {
     }
     
     /* Aplanar y limpiar el comportamiento de diseño de todos los contenedores padres */
-    html, body, .app-container, main, #dashboard-section, .main-dashboard, #tab-payroll, #tab-payroll > .card, #payroll-results-container {
+    html, body, .app-layout, .content-wrapper, #dashboard-container, main, #dashboard-section, .main-dashboard, #tab-payroll, #tab-payroll > .card, #payroll-results-container {
         display: block !important;
         position: static !important;
         overflow: visible !important;
@@ -1394,4 +1402,11 @@ tr:hover td {
     .app-layout {
         flex-direction: column;
     }
+}
+
+/* Centrado y límites de ancho para los módulos administrativos del supervisor */
+.tab-content > .card {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
 }

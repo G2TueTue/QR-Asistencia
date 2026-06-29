@@ -196,7 +196,7 @@
 
                             <!-- Selector de período y trabajador -->
                             <div
-                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-glass);">
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-glass); max-width: 900px; margin-left: auto; margin-right: auto;">
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label for="payroll-worker">Trabajador</label>
                                     <select id="payroll-worker">
@@ -216,7 +216,7 @@
                             </div>
 
                             <!-- Resultados de Liquidación (Oculto inicialmente) -->
-                            <div id="payroll-results-container" style="display: none;">
+                            <div id="payroll-results-container" style="display: none; max-width: 900px; margin: 0 auto;">
                                 <div class="financial-summary">
                                     <div class="financial-metric-card">
                                         <span class="label">Horas Ordinarias</span>
@@ -248,7 +248,7 @@
 
                                 <!-- Detalle del cálculo / Boleta de liquidación para impresión -->
                                 <div id="paystub-print-card" class="card"
-                                    style="background: rgba(255,255,255,0.01); border-color: var(--border-glass); margin-bottom: 1.5rem;">
+                                    style="background: rgba(255,255,255,0.01); border-color: var(--border-glass); margin-bottom: 1.5rem; max-width: 800px; margin-left: auto; margin-right: auto;">
                                     <div
                                         style="border-bottom: 1.5px dashed var(--border-glass); padding-bottom: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
                                         <div>
