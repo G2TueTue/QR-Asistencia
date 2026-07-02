@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRAssist - Sistema de Asistencia y Remuneraciones</title>
+    <title>JSCG - Sistema de Asistencia y Remuneraciones</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
     <div class="app-container" style="justify-content: center;">
         <!-- Logo y Cabecera del Portal -->
         <header class="text-center" style="margin-bottom: 3rem;">
             <div class="brand" style="justify-content: center; margin-bottom: 1rem;">
-                <div class="brand-logo" style="width: 60px; height: 60px; font-size: 1.75rem; border-radius: 16px;">QR</div>
+                <div class="brand-logo" style="width: 60px; height: 60px; font-size: 1.75rem; border-radius: 16px;">QR
+                </div>
                 <div class="brand-text" style="text-align: left;">
-                    <h1 style="font-size: 2rem;">QRAssist</h1>
+                    <h1 style="font-size: 2rem;">JSCG</h1>
                     <span>Asistencia & Remuneraciones</span>
                 </div>
             </div>
             <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto; line-height: 1.6;">
-                Plataforma corporativa inteligente para el control de jornada laboral y liquidaciones de sueldo mediante tecnología QR.
+                Plataforma corporativa inteligente para el control de jornada laboral y liquidaciones de sueldo mediante
+                tecnología QR.
             </p>
             <div id="live-time-wrapper" style="margin-top: 1.5rem;">
                 <div id="live-time" class="time-ticker" style="font-size: 2.25rem;">00:00:00</div>
@@ -32,26 +36,28 @@
             <a href="worker.html" class="card hub-card" id="btn-worker-portal">
                 <div class="hub-icon">📱</div>
                 <h2>Portal Trabajador</h2>
-                <p>Inicia sesión con tu RUT, escanea el código QR de la sucursal y marca tu Entrada, Colación o Salida.</p>
+                <p>Inicia sesión con tu Rut y clave, escaneando el codigo QR correspondiente para Inicio de jornada
+                    laboral, termino de jornada laboral , inicio de horas extras, termino de horas extras</p>
             </a>
 
             <!-- Tarjeta Punto de Control QR -->
             <a href="control_point.html" class="card hub-card" id="btn-control-point">
                 <div class="hub-icon">📺</div>
                 <h2>Punto de Control</h2>
-                <p>Pantalla para la sucursal. Genera y proyecta los códigos QR activos para el ingreso de jornada y horas extras.</p>
+                <p>Pantalla para la sucursal. Genera y proyecta los códigos QR activos para el ingreso de jornada y
+                    horas extras.</p>
             </a>
 
             <!-- Tarjeta Supervisor -->
             <a href="supervisor.html" class="card hub-card" id="btn-supervisor-portal">
                 <div class="hub-icon">💼</div>
-                <h2>Panel Supervisor</h2>
-                <p>Monitorea personal en tiempo real, realiza ajustes manuales a las marcas y calcula liquidaciones mensuales.</p>
+                <h2>Portal Supervisor</h2>
+                <p>Ingresa con tu rut y clave para tener acceso a datos y realizar modificaciones manuales</p>
             </a>
         </main>
 
         <footer class="app-footer">
-            <p>&copy; 2026 QRAssist System &bull; Desarrollado para Tesis de Grado</p>
+            <p>&copy; 2026 JSCG System &bull; Registro de asistencia y gestion de remuneracion</p>
         </footer>
     </div>
 
@@ -62,7 +68,7 @@
             const timeStr = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
             const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             const dateStr = now.toLocaleDateString('es-CL', dateOptions);
-            
+
             document.getElementById('live-time').textContent = timeStr;
             document.getElementById('live-date').textContent = dateStr;
         }
@@ -70,4 +76,5 @@
         updateClock();
     </script>
 </body>
+
 </html>

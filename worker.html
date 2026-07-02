@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal del Trabajador - QRAssist</title>
+    <title>Portal del Trabajador - JSCG</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="js/lib/html5-qrcode.min.js"></script>
 </head>
@@ -92,13 +92,13 @@
                     
                     <!-- Herramienta de Simulación (Para demostración o sin cámara) -->
                     <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border-glass); border-radius: 16px; padding: 1rem; margin-bottom: 2rem;">
-                        <h5 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Simulador de Escaneo (Tesis / Desarrollo)</h5>
+                        <h5 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Seleccionar tipo de marcacion correspondiente</h5>
                         <div class="flex gap-1">
                             <select id="simulate-qr-select" class="flex-1" style="padding: 0.5rem; font-size: 0.85rem;">
-                                <option value="qrassist_entrada">🟢 QR Entrada</option>
-                                <option value="qrassist_salida">🔴 QR Salida</option>
-                                <option value="qrassist_extra_inicio">⚡ QR Iniciar Horas Extras</option>
-                                <option value="qrassist_extra_fin">🛑 QR Finalizar Horas Extras</option>
+                                <option value="qrassist_entrada">🟢 QR Entrada Jornada Laboral</option>
+                                <option value="qrassist_salida">🔴 QR Salida Jornada Laboral </option>
+                                <option value="qrassist_extra_inicio">⚡ QR Inicio Horas Extras</option>
+                                <option value="qrassist_extra_fin">🛑 QR Termino Horas Extras</option>
                             </select>
                             <button id="btn-simulate-scan" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; box-shadow: none;">Simular</button>
                         </div>
@@ -200,7 +200,7 @@
         <div id="toast-container" class="toast-container"></div>
 
         <footer class="app-footer">
-            <p>&copy; 2026 QRAssist System &bull; Portal Móvil Autenticado</p>
+            <p>&copy; 2026 JSCG System &bull; Portal Móvil Autenticado</p>
         </footer>
     </div>
 

@@ -73,6 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- SESIÓN DE USUARIO ---
 
+/**
+ * Verifica si existe una sesión activa de supervisor al cargar la página.
+ * Si es válida, redirige a la consola; si no, redirige a la pantalla de login.
+ * @returns {void}
+ */
 function checkActiveSession() {
     supervisorUser = window.AppDB.getCurrentUser();
     if (supervisorUser) {
@@ -87,6 +92,12 @@ function checkActiveSession() {
     }
 }
 
+/**
+ * Controla el envío del formulario de inicio de sesión de supervisor.
+ * Valida credenciales e inicia la consola administrativa en caso exitoso.
+ * @param {Event} e - Objeto del evento submit.
+ * @returns {void}
+ */
 function handleLogin(e) {
     e.preventDefault();
     const rutInput = document.getElementById('rut-input').value.trim();
@@ -105,6 +116,10 @@ function handleLogin(e) {
     }
 }
 
+/**
+ * Cierra la sesión activa del supervisor, limpia variables locales y redirige al login.
+ * @returns {void}
+ */
 function handleLogout() {
     window.AppDB.logout();
     supervisorUser = null;
@@ -114,6 +129,10 @@ function handleLogout() {
 
 // --- VISTAS DEL DASHBOARD ---
 
+/**
+ * Prepara y despliega los elementos de la interfaz para la vista de Inicio de Sesión.
+ * @returns {void}
+ */
 function showLogin() {
     document.getElementById('login-section').style.display = 'block';
     const loginCont = document.getElementById('login-container');
@@ -126,6 +145,11 @@ function showLogin() {
     document.getElementById('login-header-container').style.display = 'block';
 }
 
+/**
+ * Prepara y despliega los elementos de la interfaz de la consola administrativa.
+ * Inicializa iniciales del supervisor, pobla selectores y carga datos en tiempo real.
+ * @returns {void}
+ */
 function showDashboard() {
     document.getElementById('login-section').style.display = 'none';
     const loginCont = document.getElementById('login-container');
@@ -138,7 +162,7 @@ function showDashboard() {
     document.getElementById('login-header-container').style.display = 'none';
     document.getElementById('sup-name-badge').textContent = supervisorUser.name;
 
-    // Establecer iniciales en el avatar
+    // Establecer iniciales en el avatar del menú lateral
     const initials = supervisorUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const avatarBadge = document.getElementById('sup-avatar-badge');
     if (avatarBadge) avatarBadge.textContent = initials;
@@ -802,6 +826,12 @@ function setupRutFormatting(inputId) {
 
 // --- MÓDULO DE GESTIÓN DE FERIADOS ---
 
+/**
+ * Maneja el evento de guardar un nuevo feriado a través del formulario.
+ * Registra la fecha en el almacenamiento persistente y refresca la vista.
+ * @param {Event} e - Objeto de evento submit.
+ * @returns {void}
+ */
 function handleSaveHoliday(e) {
     e.preventDefault();
     const dateStr = document.getElementById('holiday-date').value;
@@ -822,6 +852,10 @@ function handleSaveHoliday(e) {
     }
 }
 
+/**
+ * Consulta la lista completa de feriados configurados y los renderiza en la tabla.
+ * @returns {void}
+ */
 function loadHolidaysList() {
     const tbody = document.getElementById('holidays-table-body');
     if (!tbody) return;
@@ -860,6 +894,11 @@ function loadHolidaysList() {
     });
 }
 
+/**
+ * Maneja la acción del supervisor para borrar un feriado de la base de datos tras una confirmación.
+ * @param {string} dateStr - Cadena de fecha (YYYY-MM-DD) del feriado a eliminar.
+ * @returns {void}
+ */
 window.handleDeleteHoliday = function (dateStr) {
     if (confirm("¿Estás seguro de que deseas eliminar este feriado? Esto afectará los cálculos de liquidación actuales.")) {
         try {
@@ -874,6 +913,12 @@ window.handleDeleteHoliday = function (dateStr) {
 
 // --- CONTROL DE NAVEGACIÓN MÓVIL (SIDEBAR) ---
 
+/**
+ * Contrae o despliega el menú de navegación lateral flotante en celulares y tablets.
+ * Alterna también la visibilidad del fondo oscuro de desenfoque.
+ * @param {boolean} isOpen - Define si se debe abrir (true) o cerrar (false) el menú.
+ * @returns {void}
+ */
 window.toggleMobileSidebar = function (isOpen) {
     const sidebar = document.getElementById('main-sidebar');
     const backdrop = document.getElementById('sidebar-backdrop');

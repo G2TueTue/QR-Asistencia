@@ -64,6 +64,26 @@ function generateQRCodes() {
             background: qrBg
         });
 
+        // 5. QR Link Portal Trabajador (Acceso Móvil)
+        new QRious({
+            element: document.getElementById('qr-link-worker-canvas'),
+            value: 'https://g2tuetue.github.io/QR-Asistencia/worker.html',
+            size: 140,
+            level: 'H',
+            foreground: qrColor,
+            background: qrBg
+        });
+
+        // 6. QR Link Portal Supervisor (Acceso Consola)
+        new QRious({
+            element: document.getElementById('qr-link-supervisor-canvas'),
+            value: 'https://g2tuetue.github.io/QR-Asistencia/supervisor.html',
+            size: 140,
+            level: 'H',
+            foreground: qrColor,
+            background: qrBg
+        });
+
     } catch (e) {
         console.error("Error al generar códigos QR con la librería QRious:", e);
     }
@@ -77,7 +97,7 @@ function startClock() {
     function update() {
         const now = new Date();
         timeElement.textContent = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-        
+
         const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
         dateElement.textContent = now.toLocaleDateString('es-CL', dateOptions);
     }
@@ -92,12 +112,12 @@ function setupQRClickEvents() {
     qrBoxes.forEach(box => {
         // Cambiar cursor a puntero para indicar clickeable
         box.style.cursor = 'pointer';
-        
+
         box.addEventListener('click', () => {
             const title = box.getAttribute('data-title');
             const value = box.getAttribute('data-value');
             const emoji = box.getAttribute('data-emoji');
-            
+
             if (title && value) {
                 zoomQR(title, value, emoji);
             }
@@ -109,7 +129,7 @@ function setupQRClickEvents() {
 function zoomQR(title, value, emoji) {
     const backdrop = document.getElementById('qr-zoom-backdrop');
     document.getElementById('zoom-title').innerHTML = `${emoji} ${title}`;
-    
+
     // Generar un código QR nuevo más grande (280px) en la canvas de la modal
     new QRious({
         element: document.getElementById('qr-zoom-canvas'),
@@ -119,7 +139,7 @@ function zoomQR(title, value, emoji) {
         foreground: '#0B0F19',
         background: '#FFFFFF'
     });
-    
+
     // Mostrar la modal
     backdrop.style.display = 'flex';
 }
@@ -128,14 +148,14 @@ function zoomQR(title, value, emoji) {
 function setupZoomCloseEvents() {
     const backdrop = document.getElementById('qr-zoom-backdrop');
     const closeBtn = document.getElementById('btn-close-zoom');
-    
+
     // Cerrar haciendo clic en el fondo oscuro
     backdrop.addEventListener('click', (e) => {
         if (e.target === backdrop) {
             backdrop.style.display = 'none';
         }
     });
-    
+
     // Cerrar con el botón
     closeBtn.addEventListener('click', () => {
         backdrop.style.display = 'none';

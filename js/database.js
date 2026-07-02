@@ -376,6 +376,11 @@ class DatabaseManager {
 
     // --- MÉTODOS DE FERIADOS ---
 
+    /**
+     * Inicializa la lista predeterminada de días feriados de Chile para el año 2026
+     * en LocalStorage si aún no existen registros.
+     * @returns {void}
+     */
     initHolidays() {
         const defaultHolidays = [
             { date: "2026-01-01", name: "Año Nuevo" },
@@ -401,22 +406,43 @@ class DatabaseManager {
         }
     }
 
+    /**
+     * Obtiene el listado completo de feriados locales, ordenados por fecha ascendente.
+     * @returns {Array<{date: string, name: string}>} Arreglo con los feriados registrados.
+     */
     getHolidays() {
         const holidays = JSON.parse(localStorage.getItem('qr_asistencia_feriados')) || [];
         return holidays.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
 
+    /**
+     * Determina si una fecha específica corresponde a un día feriado registrado.
+     * @param {string} dateStr - Fecha a evaluar en formato YYYY-MM-DD.
+     * @returns {boolean} True si es feriado, false de lo contrario.
+     */
     isHoliday(dateStr) {
         const holidays = this.getHolidays();
         return holidays.some(h => h.date === dateStr);
     }
 
+    /**
+     * Obtiene el nombre del feriado correspondiente a una fecha.
+     * @param {string} dateStr - Fecha en formato YYYY-MM-DD.
+     * @returns {string} El nombre de la festividad, o una cadena vacía si no es festivo.
+     */
     getHolidayName(dateStr) {
         const holidays = this.getHolidays();
         const found = holidays.find(h => h.date === dateStr);
         return found ? found.name : '';
     }
 
+    /**
+     * Registra un nuevo día feriado en la persistencia local y sincroniza en Firebase.
+     * @param {string} dateStr - Fecha del feriado (YYYY-MM-DD).
+     * @param {string} name - Nombre descriptivo de la festividad.
+     * @throws {Error} Si ya existe un feriado en la fecha indicada.
+     * @returns {{date: string, name: string}} El objeto del feriado creado.
+     */
     addHoliday(dateStr, name) {
         const holidays = this.getHolidays();
         if (holidays.some(h => h.date === dateStr)) {
@@ -441,6 +467,12 @@ class DatabaseManager {
         return newHoliday;
     }
 
+    /**
+     * Elimina un día feriado del LocalStorage y de la colección remota de Firebase.
+     * @param {string} dateStr - Fecha del feriado (YYYY-MM-DD) a remover.
+     * @throws {Error} Si la fecha no corresponde a ningún feriado activo.
+     * @returns {void}
+     */
     deleteHoliday(dateStr) {
         let holidays = this.getHolidays();
         if (!holidays.some(h => h.date === dateStr)) {
@@ -673,8 +705,13 @@ class DatabaseManager {
     }
 
     /**
-     * Procesa los registros de un mes y año determinado para calcular horas diarias.
-     * Agrupa por día.
+     * Procesa y agrupa cronológicamente los registros de asistencia de un trabajador 
+     * en un mes/año particular, calculando las horas ordinarias y extras trabajadas por día.
+     * Descuenta una hora obligatoria de colación en marcas regulares completas.
+     * @param {string} rut - RUT del trabajador.
+     * @param {number} year - Año de consulta (ej. 2026).
+     * @param {number} month - Índice de mes (0 = Enero, 11 = Diciembre).
+     * @returns {Array<Object>} Arreglo ordenado por fecha con el desglose diario.
      */
     calculateMonthlyBreakdown(rut, year, month) {
         const records = this.getRecordsByWorker(rut);
@@ -914,7 +951,14 @@ class DatabaseManager {
     }
 
     /**
-     * Calcula la liquidación de sueldo mensual (Reglas Financieras)
+     * Calcula la liquidación de sueldo mensual (Reglas Financieras).
+     * Aplica pago proporcional de sueldo base si es menor a 160 horas metas.
+     * Incorpora recargo legal del +50% (total 1.5x) para cualquier hora (ordinaria o extra)
+     * trabajada durante días festivos (feriados).
+     * @param {string} rut - RUT del trabajador.
+     * @param {number} year - Año del período de cálculo.
+     * @param {number} month - Mes del período de cálculo (0-11).
+     * @returns {Object|null} Objeto con la liquidación detallada y resumen financiero, o null si el usuario no existe.
      */
     calculatePayroll(rut, year, month) {
         const breakdown = this.calculateMonthlyBreakdown(rut, year, month);

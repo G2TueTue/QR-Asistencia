@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="js/lib/qrious.min.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Cabecera del Punto de Control -->
@@ -27,37 +29,49 @@
         <!-- Contenido Principal: Rejilla de los 4 QRs de marcas específicas -->
         <main class="control-point-layout" style="gap: 1.5rem;">
             <div class="card" style="width: 100%; max-width: 900px; padding: 1.25rem; text-align: center;">
-                <p style="color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.8rem;">Presentación Corporativa</p>
-                <h3 style="font-size: 1.35rem; margin-top: 0.25rem;">Haz clic sobre cualquier tarjeta para agrandar el código QR y facilitar el escaneo</h3>
+                <p
+                    style="color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.8rem;">
+                    Presentación Corporativa</p>
+                <h3 style="font-size: 1.35rem; margin-top: 0.25rem;">Haz clic sobre cualquier tarjeta para agrandar el
+                    código QR y facilitar el escaneo</h3>
             </div>
 
             <!-- Rejilla de códigos QR (4 Columnas) -->
-            <div class="qr-displays-container" style="max-width: 100%; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; width: 100%;">
-                
+            <div class="qr-displays-container"
+                style="max-width: 100%; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; width: 100%;">
+
                 <!-- QR 1: Entrada -->
-                <div class="qr-box" style="padding: 1.5rem 1rem;" data-title="Entrada al Trabajo" data-value="qrassist_entrada" data-emoji="🟢">
-                    <span class="status-badge status-working" style="font-size: 0.65rem; margin-bottom: 0.5rem;">JORNADA</span>
+                <div class="qr-box" style="padding: 1.5rem 1rem;" data-title="Entrada al Trabajo"
+                    data-value="qrassist_entrada" data-emoji="🟢">
+                    <span class="status-badge status-working"
+                        style="font-size: 0.65rem; margin-bottom: 0.5rem;">JORNADA</span>
                     <h2 style="font-size: 1.1rem; color: var(--color-entrada);">🟢 Entrada</h2>
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Ingresar al Turno</p>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Ingreso a la Jornada
+                        Laboral</p>
                     <div class="qr-canvas-wrapper" style="padding: 0.75rem; border-radius: 12px; margin-bottom: 0;">
                         <canvas id="qr-entrada-canvas"></canvas>
                     </div>
                 </div>
 
                 <!-- QR 2: Salida -->
-                <div class="qr-box" style="padding: 1.5rem 1rem;" data-title="Salida del Trabajo" data-value="qrassist_salida" data-emoji="🔴">
-                    <span class="status-badge status-out" style="font-size: 0.65rem; margin-bottom: 0.5rem;">JORNADA</span>
+                <div class="qr-box" style="padding: 1.5rem 1rem;" data-title="Salida del Trabajo"
+                    data-value="qrassist_salida" data-emoji="🔴">
+                    <span class="status-badge status-out"
+                        style="font-size: 0.65rem; margin-bottom: 0.5rem;">JORNADA</span>
                     <h2 style="font-size: 1.1rem; color: var(--color-salida);">🔴 Salida</h2>
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Terminar el Día</p>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Salida de la Jornada
+                        Laboral</p>
                     <div class="qr-canvas-wrapper" style="padding: 0.75rem; border-radius: 12px; margin-bottom: 0;">
                         <canvas id="qr-salida-canvas"></canvas>
                     </div>
                 </div>
 
                 <!-- QR 3: Iniciar Extras -->
-                <div class="qr-box overtime-box" style="padding: 1.5rem 1rem;" data-title="Iniciar Turno Extra" data-value="qrassist_extra_inicio" data-emoji="⚡">
-                    <span class="status-badge status-overtime" style="font-size: 0.65rem; margin-bottom: 0.5rem;">SOBRETIEMPO</span>
-                    <h2 style="font-size: 1.1rem; color: var(--color-extra);">⚡ Iniciar Extra</h2>
+                <div class="qr-box overtime-box" style="padding: 1.5rem 1rem;" data-title="Iniciar Turno Extra"
+                    data-value="qrassist_extra_inicio" data-emoji="⚡">
+                    <span class="status-badge status-overtime"
+                        style="font-size: 0.65rem; margin-bottom: 0.5rem;">SOBRETIEMPO</span>
+                    <h2 style="font-size: 1.1rem; color: var(--color-extra);">⚡ Iniciar Horas Extra</h2>
                     <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Entrada Extra</p>
                     <div class="qr-canvas-wrapper" style="padding: 0.75rem; border-radius: 12px; margin-bottom: 0;">
                         <canvas id="qr-extra-in-canvas"></canvas>
@@ -65,10 +79,12 @@
                 </div>
 
                 <!-- QR 4: Finalizar Extras -->
-                <div class="qr-box overtime-box" style="padding: 1.5rem 1rem;" data-title="Finalizar Turno Extra" data-value="qrassist_extra_fin" data-emoji="🔴">
-                    <span class="status-badge status-out" style="font-size: 0.65rem; margin-bottom: 0.5rem;">SOBRETIEMPO</span>
+                <div class="qr-box overtime-box" style="padding: 1.5rem 1rem;" data-title="Finalizar Turno Extra"
+                    data-value="qrassist_extra_fin" data-emoji="🔴">
+                    <span class="status-badge status-out"
+                        style="font-size: 0.65rem; margin-bottom: 0.5rem;">SOBRETIEMPO</span>
                     <h2 style="font-size: 1.1rem; color: var(--color-salida);">🔴 Salida Extra</h2>
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Salida de Extra</p>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Termino de Extra</p>
                     <div class="qr-canvas-wrapper" style="padding: 0.75rem; border-radius: 12px; margin-bottom: 0;">
                         <canvas id="qr-extra-out-canvas"></canvas>
                     </div>
@@ -77,15 +93,53 @@
             </div>
         </main>
 
+        <!-- Panel de Accesos Administrativos y Portales -->
+        <div style="margin: 2rem auto 3rem auto; width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 3rem;">
+            <p style="color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.8rem; text-align: center; margin-bottom: -1.5rem;">🌐 Enlaces y Accesos Directos</p>
+            
+            <!-- Acceso Portal Trabajador (Cian / Esmeralda) -->
+            <div class="card" style="border: 2px solid #06B6D4; background: rgba(6, 182, 212, 0.04); padding: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; border-radius: 20px; flex-wrap: wrap; box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);">
+                <div style="text-align: left; flex: 1; min-width: 250px;">
+                    <span class="status-badge" style="font-size: 0.7rem; margin-bottom: 0.75rem; background: rgba(6, 182, 212, 0.2); color: #06B6D4; border-color: #06B6D4; font-weight: 800; padding: 0.3rem 0.8rem;">📱 Portal Trabajador</span>
+                    <h4 style="font-size: 1.25rem; font-weight: 800; color: white;">Portal Trabajador</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem; line-height: 1.4;">
+                        Escanea este código para abrir la aplicación de registro y marcar tu entrada, salida o colación desde tu propio teléfono celular.
+                    </p>
+                </div>
+                <div style="background: white; padding: 0.75rem; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); flex-shrink: 0; margin: 0 auto; border: 3px solid #06B6D4;">
+                    <canvas id="qr-link-worker-canvas" style="width: 140px; height: 140px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Acceso Portal Supervisor (Naranja / Ámbar) -->
+            <div class="card" style="border: 2px solid #F59E0B; background: rgba(245, 158, 11, 0.04); padding: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; border-radius: 20px; flex-wrap: wrap; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);">
+                <div style="text-align: left; flex: 1; min-width: 250px;">
+                    <span class="status-badge" style="font-size: 0.7rem; margin-bottom: 0.75rem; background: rgba(245, 158, 11, 0.2); color: #F59E0B; border-color: #F59E0B; font-weight: 800; padding: 0.3rem 0.8rem;">💼 Portal Supervisor</span>
+                    <h4 style="font-size: 1.25rem; font-weight: 800; color: white;">Portal Supervisor</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem; line-height: 1.4;">
+                        Reservado para supervisores. Escanea para ingresar a la plataforma de monitoreo de personal y cálculo de remuneraciones.
+                    </p>
+                </div>
+                <div style="background: white; padding: 0.75rem; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); flex-shrink: 0; margin: 0 auto; border: 3px solid #F59E0B;">
+                    <canvas id="qr-link-supervisor-canvas" style="width: 140px; height: 140px;"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL DE ZOOM QR (PANTALLA COMPLETA INTERACTIVA) -->
-        <div id="qr-zoom-backdrop" class="backdrop" style="display: none; align-items: center; justify-content: center; z-index: 2000; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-            <div class="card" style="max-width: 420px; width: 90%; text-align: center; padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; border-color: var(--accent); box-shadow: 0 0 50px rgba(6, 182, 212, 0.25);">
+        <div id="qr-zoom-backdrop" class="backdrop"
+            style="display: none; align-items: center; justify-content: center; z-index: 2000; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+            <div class="card"
+                style="max-width: 420px; width: 90%; text-align: center; padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; border-color: var(--accent); box-shadow: 0 0 50px rgba(6, 182, 212, 0.25);">
                 <h2 id="zoom-title" style="font-size: 1.5rem; color: white;">Entrada al Trabajo</h2>
-                <div style="background: white; padding: 1.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
+                <div
+                    style="background: white; padding: 1.5rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
                     <canvas id="qr-zoom-canvas"></canvas>
                 </div>
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: -0.25rem;">Presiona fuera del recuadro o haz clic en Cerrar para volver</p>
-                <button class="btn btn-secondary" id="btn-close-zoom" style="width: 100%; padding: 0.75rem;">Cerrar Pantalla</button>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: -0.25rem;">Presiona fuera del
+                    recuadro o haz clic en Cerrar para volver</p>
+                <button class="btn btn-secondary" id="btn-close-zoom" style="width: 100%; padding: 0.75rem;">Cerrar
+                    Pantalla</button>
             </div>
         </div>
 
@@ -93,7 +147,7 @@
         <div id="toast-container" class="toast-container"></div>
 
         <footer class="app-footer" style="padding: 1.5rem 0;">
-            <p>&copy; 2026 QRAssist System &bull; Terminal de Negocio Autorizada</p>
+            <p>&copy; 2026 JSCG System &bull; Terminal de Negocio Autorizada</p>
         </footer>
     </div>
 
@@ -105,4 +159,5 @@
     <script src="js/database.js"></script>
     <script src="js/control-point.js"></script>
 </body>
+
 </html>
