@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="js/lib/html5-qrcode.min.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Cabecera -->
@@ -19,7 +21,8 @@
                 </div>
             </a>
             <div id="logged-user-header" style="display: none;">
-                <button id="btn-logout" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Cerrar Sesión</button>
+                <button id="btn-logout" class="btn btn-secondary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Cerrar Sesión</button>
             </div>
         </header>
 
@@ -28,8 +31,9 @@
             <section id="login-section" class="card login-card">
                 <h2>Ingreso de Personal</h2>
                 <p>Ingresa tus credenciales corporativas</p>
-                
-                <div id="login-error" style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--color-salida); color: #FCA5A5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center;">
+
+                <div id="login-error"
+                    style="display: none; background: rgba(239,68,68,0.15); border: 1px solid var(--color-salida); color: #FCA5A5; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center;">
                     RUT o contraseña incorrectos.
                 </div>
 
@@ -37,16 +41,19 @@
                     <div class="form-group">
                         <label for="rut-input">RUT del Trabajador</label>
                         <input type="text" id="rut-input" placeholder="12.345.678-9" required autocomplete="username">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">Prueba: 12.345.678-9 o 18.765.432-1</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Prueba: 12.345.678-9 o
+                            18.765.432-1</span>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="password-input">Contraseña</label>
-                        <input type="password" id="password-input" placeholder="••••" required autocomplete="current-password">
+                        <input type="password" id="password-input" placeholder="••••" required
+                            autocomplete="current-password">
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Clave prueba: 1234 o 5678</span>
                     </div>
 
-                    <button type="submit" id="btn-submit-login" class="btn" style="width: 100%; margin-top: 1rem;">Ingresar al Portal</button>
+                    <button type="submit" id="btn-submit-login" class="btn"
+                        style="width: 100%; margin-top: 1rem;">Ingresar al Portal</button>
                 </form>
             </section>
 
@@ -56,7 +63,7 @@
                     <div class="worker-avatar" id="w-avatar">U</div>
                     <h3 class="worker-name" id="w-name">Cargando...</h3>
                     <p class="worker-rut" id="w-rut">RUT: --.---.---</p>
-                    
+
                     <!-- Estado actual del trabajador -->
                     <div class="mt-4">
                         <span class="status-badge" id="w-status-badge">Cargando Estado...</span>
@@ -67,9 +74,10 @@
                 <div id="scanner-container" style="display: none;">
                     <div class="flex justify-between align-center">
                         <h4 style="font-size: 0.95rem; font-weight: 700;">Cámara de Escaneo QR</h4>
-                        <button id="btn-close-scanner" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Cancelar</button>
+                        <button id="btn-close-scanner" class="btn btn-secondary"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Cancelar</button>
                     </div>
-                    
+
                     <div class="camera-scanner-wrapper">
                         <div class="camera-scanner-overlay">
                             <div class="scanner-reticle">
@@ -78,7 +86,7 @@
                         </div>
                         <div id="reader"></div>
                     </div>
-                    
+
                     <p class="text-center" style="font-size: 0.8rem; color: var(--text-secondary);">
                         Apunta tu cámara al código QR de la sucursal.
                     </p>
@@ -86,10 +94,13 @@
 
                 <!-- Botones y Acciones del Panel -->
                 <div id="dashboard-actions">
-                    
+
                     <!-- Herramienta de Simulación (Para demostración o sin cámara) -->
-                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border-glass); border-radius: 16px; padding: 1rem; margin-bottom: 2rem;">
-                        <h5 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Seleccionar tipo de marcacion correspondiente</h5>
+                    <div
+                        style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border-glass); border-radius: 16px; padding: 1rem; margin-bottom: 2rem;">
+                        <h5
+                            style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">
+                            Seleccionar tipo de marcacion correspondiente</h5>
                         <div class="flex gap-1">
                             <select id="simulate-qr-select" class="flex-1" style="padding: 0.5rem; font-size: 0.85rem;">
                                 <option value="qrassist_entrada">🟢 Entrada Jornada Laboral</option>
@@ -97,13 +108,15 @@
                                 <option value="qrassist_extra_inicio">⚡ Inicio Horas Extras</option>
                                 <option value="qrassist_extra_fin">🛑 Termino Horas Extras</option>
                             </select>
-                            <button id="btn-simulate-scan" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; box-shadow: none;">Simular</button>
+                            <button id="btn-simulate-scan" class="btn"
+                                style="padding: 0.5rem 1rem; font-size: 0.85rem; box-shadow: none;">Simular</button>
                         </div>
                     </div>
 
                     <!-- Historial de hoy del trabajador -->
                     <div>
-                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Marcas Registradas Hoy</h4>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Marcas Registradas Hoy
+                        </h4>
                         <div class="table-wrapper" style="margin-top: 0;">
                             <table>
                                 <thead>
@@ -115,7 +128,9 @@
                                 </thead>
                                 <tbody id="today-records-table">
                                     <tr>
-                                        <td colspan="3" class="text-center" style="color: var(--text-muted); font-style: italic; padding: 1.5rem;">Cargando historial...</td>
+                                        <td colspan="3" class="text-center"
+                                            style="color: var(--text-muted); font-style: italic; padding: 1.5rem;">
+                                            Cargando historial...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -161,7 +176,8 @@
                 <p>Selecciona tu registro de horas extras:</p>
             </div>
             <div class="action-sheet-grid" style="grid-template-columns: repeat(2, 1fr);">
-                <button class="action-btn entrada" data-type="extra_inicio" style="border-color: rgba(99, 102, 241, 0.2);">
+                <button class="action-btn entrada" data-type="extra_inicio"
+                    style="border-color: rgba(99, 102, 241, 0.2);">
                     <span class="icon">⚡</span>
                     <span style="color: var(--color-extra);">Iniciar Turno Extra</span>
                 </button>
@@ -180,11 +196,13 @@
                 <h3>Confirmar Registro</h3>
                 <p>Se ha detectado un código de marcación rápida:</p>
             </div>
-            
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; margin-bottom: 1.5rem; text-align: center;">
+
+            <div
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; margin-bottom: 1.5rem; text-align: center;">
                 <span id="confirm-icon" style="font-size: 3rem; margin-bottom: 0.25rem;">🟢</span>
                 <h4 id="confirm-action-name" style="font-size: 1.25rem; font-weight: 700; color: white;">Entrada</h4>
-                <p id="confirm-time" style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem;">Hora actual: --:--</p>
+                <p id="confirm-time" style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem;">Hora
+                    actual: --:--</p>
             </div>
 
             <div class="flex gap-2">
@@ -209,4 +227,5 @@
     <script src="js/database.js"></script>
     <script src="js/worker.js"></script>
 </body>
+
 </html>

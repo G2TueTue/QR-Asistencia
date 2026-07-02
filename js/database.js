@@ -29,6 +29,7 @@ class DatabaseManager {
                 password: "1234",
                 role: "worker",
                 baseSalary: 600000,
+                overtimeRate: 4500,
                 targetHours: 160
             },
             {
@@ -37,6 +38,7 @@ class DatabaseManager {
                 password: "5678",
                 role: "worker",
                 baseSalary: 600000,
+                overtimeRate: 4500,
                 targetHours: 160
             },
             {
@@ -55,8 +57,8 @@ class DatabaseManager {
         } else {
             try {
                 const parsed = JSON.parse(existingUsers);
-                // Si no es un arreglo, no contiene nuestro RUT de prueba o la meta no es 160, forzamos el reset
-                if (!Array.isArray(parsed) || !parsed.some(u => u.rut === "12.345.678-9") || !parsed.some(u => u.targetHours === 160)) {
+                // Si no es un arreglo, no contiene nuestro RUT de prueba, la meta no es 160, o falta overtimeRate, forzamos el reset
+                if (!Array.isArray(parsed) || !parsed.some(u => u.rut === "12.345.678-9") || !parsed.some(u => u.targetHours === 160) || !parsed.some(u => u.role === 'worker' && u.overtimeRate !== undefined)) {
                     shouldReset = true;
                 }
             } catch (e) {
@@ -152,6 +154,7 @@ class DatabaseManager {
             password: data.contrasena || data.password || '',
             role: data.rol || data.role || 'worker',
             baseSalary: Number(data.sueldo_base || data.baseSalary || 600000),
+            overtimeRate: Number(data.valor_hora_extra || data.overtimeRate || 4500),
             targetHours: Number(data.horas_meta || data.targetHours || 160)
         };
     }
@@ -193,6 +196,7 @@ class DatabaseManager {
                 password: "1234",
                 role: "worker",
                 baseSalary: 600000,
+                overtimeRate: 4500,
                 targetHours: 160
             },
             {
@@ -201,6 +205,7 @@ class DatabaseManager {
                 password: "5678",
                 role: "worker",
                 baseSalary: 600000,
+                overtimeRate: 4500,
                 targetHours: 160
             },
             {
@@ -220,6 +225,7 @@ class DatabaseManager {
                 contrasena: user.password,
                 rol: user.role,
                 sueldo_base: user.baseSalary || null,
+                valor_hora_extra: user.overtimeRate || null,
                 horas_meta: user.targetHours || null
             });
         });
@@ -251,14 +257,18 @@ class DatabaseManager {
     // --- MÉTODOS DE USUARIOS ---
 
     getUsers() {
-        return JSON.parse(localStorage.getItem('qr_asistencia_users')) || [];
+        const users = JSON.parse(localStorage.getItem('qr_asistencia_users')) || [];
+        return users.map(u => ({
+            ...u,
+            overtimeRate: u.overtimeRate !== undefined ? u.overtimeRate : (u.role === 'worker' ? 4500 : undefined)
+        }));
     }
 
     getUserByRut(rut) {
         return this.getUsers().find(u => u.rut === rut);
     }
 
-    addWorker(rut, name, password, baseSalary) {
+    addWorker(rut, name, password, baseSalary, overtimeRate) {
         const users = this.getUsers();
 
         // Verificar si el RUT ya existe
@@ -272,6 +282,7 @@ class DatabaseManager {
             password: password,
             role: 'worker', // Rol fijo como trabajador
             baseSalary: Number(baseSalary),
+            overtimeRate: Number(overtimeRate || 4500),
             targetHours: 160 // Meta por defecto
         };
 
@@ -285,6 +296,7 @@ class DatabaseManager {
                 contrasena: password,
                 rol: 'worker',
                 sueldo_base: Number(baseSalary),
+                valor_hora_extra: Number(overtimeRate || 4500),
                 horas_meta: 160
             };
             window.FirebaseDB.collection('Usuarios').doc(rut).set(firebaseUser)
@@ -322,7 +334,7 @@ class DatabaseManager {
         }
     }
 
-    updateWorker(rut, name, password, baseSalary) {
+    updateWorker(rut, name, password, baseSalary, overtimeRate) {
         const users = this.getUsers();
         const userIdx = users.findIndex(u => u.rut === rut);
 
@@ -333,6 +345,7 @@ class DatabaseManager {
         users[userIdx].name = name;
         users[userIdx].password = password;
         users[userIdx].baseSalary = Number(baseSalary);
+        users[userIdx].overtimeRate = Number(overtimeRate || 4500);
 
         localStorage.setItem('qr_asistencia_users', JSON.stringify(users));
 
@@ -343,6 +356,7 @@ class DatabaseManager {
                 contrasena: password,
                 rol: 'worker',
                 sueldo_base: Number(baseSalary),
+                valor_hora_extra: Number(overtimeRate || 4500),
                 horas_meta: users[userIdx].targetHours || 160
             };
             window.FirebaseDB.collection('Usuarios').doc(rut).update(firebaseUser)
@@ -982,15 +996,15 @@ class DatabaseManager {
         });
 
         // Fórmulas de Negocio
-        const baseTarget = 160;
-        const rateBase = 600000;
-        const rateExtra = 4500;
+        const baseTarget = Number(user.targetHours || 160);
+        const rateBase = Number(user.baseSalary || 600000);
+        const rateExtra = Number(user.overtimeRate || 4500);
 
         let baseSalaryEarned = 0;
         let regularOvertimeHours = 0;
 
         if (totalRegularHours >= baseTarget) {
-            // Cumple o supera las 160 horas meta
+            // Cumple o supera las horas meta
             baseSalaryEarned = rateBase;
             // El exceso de la jornada regular se convierte en horas extras (con redondeo a 50 min)
             const diff = totalRegularHours - baseTarget;
@@ -998,13 +1012,13 @@ class DatabaseManager {
             const diffMins = (diff - diffInt) * 60;
             regularOvertimeHours = diffMins >= 50 ? diffInt + 1 : diffInt;
         } else {
-            // Opción A: Pago proporcional si trabaja menos de 160 horas ordinarias
+            // Opción A: Pago proporcional si trabaja menos de las horas ordinarias meta
             baseSalaryEarned = (totalRegularHours / baseTarget) * rateBase;
             baseSalaryEarned = Math.max(0, parseFloat(baseSalaryEarned.toFixed(0)));
             regularOvertimeHours = 0;
         }
 
-        // Sumar horas extras: las regulares que exceden 160 + todas las realizadas vía el QR de Horas Extras
+        // Sumar horas extras: las regulares que exceden meta + todas las realizadas vía el QR de Horas Extras
         const totalOvertimeHours = regularOvertimeHours + totalExtraShiftHours;
         
         // Redondear a 2 decimales para la visualización del total consolidado (los extras ya son enteros)
@@ -1014,7 +1028,7 @@ class DatabaseManager {
         const totalOvertimeHoursRounded = totalOvertimeHours;
 
         // Surcharges (recargos) for holidays (+50% to make it 1.5x)
-        const rateRegularHour = rateBase / baseTarget; // 3750
+        const rateRegularHour = rateBase / baseTarget;
         const holidayRegularSurcharge = Math.round(holidayRegularHours * rateRegularHour * 0.5);
         const holidayExtraSurcharge = Math.round(holidayExtraShiftHours * rateExtra * 0.5);
         const totalHolidaySurcharge = holidayRegularSurcharge + holidayExtraSurcharge;
@@ -1045,7 +1059,10 @@ class DatabaseManager {
             baseSalaryEarned: baseSalaryEarned,
             overtimeSalaryEarned: overtimeSalaryEarned,
             totalSalary: totalSalary,
-            breakdown: formattedBreakdown
+            breakdown: formattedBreakdown,
+            referenceBaseSalary: rateBase,
+            targetHours: baseTarget,
+            overtimeRate: rateExtra
         };
     }
 

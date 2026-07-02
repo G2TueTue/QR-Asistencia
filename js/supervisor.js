@@ -529,10 +529,13 @@ function handleCalculatePayroll() {
     document.getElementById('stub-worker-name').textContent = payroll.name;
     document.getElementById('stub-worker-rut').textContent = payroll.rut;
 
-    document.getElementById('stub-hours-regular').textContent = `${payroll.totalRegularHours.toFixed(1)} / 160.0 hrs`;
+    document.getElementById('stub-base-salary-description').textContent = `Sueldo Base Mensual (${payroll.targetHours} hrs)`;
+    document.getElementById('stub-base-salary-reference').textContent = formatCurrency(payroll.referenceBaseSalary);
+    document.getElementById('stub-hours-regular').textContent = `${payroll.totalRegularHours.toFixed(1)} / ${payroll.targetHours.toFixed(1)} hrs`;
     document.getElementById('stub-salary-base').textContent = formatCurrency(payroll.baseSalaryEarned);
 
     // Detalle de horas extras
+    document.getElementById('stub-overtime-rate-description').textContent = `Total Pago Horas Extras (${formatCurrency(payroll.overtimeRate)} c/u)`;
     document.getElementById('stub-hours-overtime-total').textContent = `${payroll.totalOvertimeHours.toFixed(1)} hrs`;
     document.getElementById('stub-salary-overtime').textContent = formatCurrency(payroll.overtimeSalaryEarned);
 
@@ -651,7 +654,7 @@ function loadWorkersList() {
     if (workers.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center" style="color: var(--text-muted); font-style: italic; padding: 1.5rem;">
+                <td colspan="7" class="text-center" style="color: var(--text-muted); font-style: italic; padding: 1.5rem;">
                     No hay trabajadores registrados.
                 </td>
             </tr>
@@ -667,6 +670,7 @@ function loadWorkersList() {
             <td style="font-feature-settings: 'tnum'; font-family: monospace;">${w.password}</td>
             <td><span class="status-badge status-overtime" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Trabajador 👥</span></td>
             <td style="font-feature-settings: 'tnum'; font-weight: 600;">$${w.baseSalary.toLocaleString('es-CL')}</td>
+            <td style="font-feature-settings: 'tnum'; font-weight: 600;">$${(w.overtimeRate || 4500).toLocaleString('es-CL')}</td>
             <td>
                 <div class="flex gap-1">
                     <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: none; min-width: 95px;" onclick="openWorkerModal('${w.rut}')">
@@ -717,6 +721,7 @@ window.openWorkerModal = function (rut = null) {
             document.getElementById('worker-name').value = worker.name;
             document.getElementById('worker-password').value = worker.password;
             document.getElementById('worker-salary').value = worker.baseSalary;
+            document.getElementById('worker-overtime-rate').value = worker.overtimeRate || 4500;
         }
     } else {
         // Modo Creación
@@ -728,6 +733,7 @@ window.openWorkerModal = function (rut = null) {
         document.getElementById('worker-name').value = "";
         document.getElementById('worker-password').value = "";
         document.getElementById('worker-salary').value = "600000";
+        document.getElementById('worker-overtime-rate').value = "4500";
     }
 
     backdrop.style.display = 'block';
@@ -756,19 +762,20 @@ function handleSaveWorker(e) {
     const name = document.getElementById('worker-name').value.trim();
     const password = document.getElementById('worker-password').value.trim();
     const salary = Number(document.getElementById('worker-salary').value);
+    const overtimeRate = Number(document.getElementById('worker-overtime-rate').value);
     const isEditMode = rutInput.disabled;
 
-    if (!rut || !name || !password || isNaN(salary) || salary < 0) {
+    if (!rut || !name || !password || isNaN(salary) || salary < 0 || isNaN(overtimeRate) || overtimeRate < 0) {
         showToast("Por favor complete todos los campos correctamente.", "error");
         return;
     }
 
     try {
         if (isEditMode) {
-            window.AppDB.updateWorker(rut, name, password, salary);
+            window.AppDB.updateWorker(rut, name, password, salary, overtimeRate);
             showToast("Trabajador actualizado exitosamente.", "success");
         } else {
-            window.AppDB.addWorker(rut, name, password, salary);
+            window.AppDB.addWorker(rut, name, password, salary, overtimeRate);
             showToast("Trabajador registrado exitosamente.", "success");
         }
         closeWorkerModal();
