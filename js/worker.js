@@ -14,8 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-form').addEventListener('submit', handleLogin);
 
     // Event Listeners de la Interfaz del Dashboard
-    document.getElementById('btn-open-scanner').addEventListener('click', startCamera);
-    document.getElementById('btn-close-scanner').addEventListener('click', stopCamera);
+    const btnOpenScanner = document.getElementById('btn-open-scanner');
+    if (btnOpenScanner) {
+        btnOpenScanner.addEventListener('click', startCamera);
+    }
+    const btnCloseScanner = document.getElementById('btn-close-scanner');
+    if (btnCloseScanner) {
+        btnCloseScanner.addEventListener('click', stopCamera);
+    }
     document.getElementById('btn-logout').addEventListener('click', handleLogout);
 
     // Simulador de Escaneo
